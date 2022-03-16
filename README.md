@@ -23,7 +23,7 @@ into your project and use.
 The headers may be installed into a standard location using `cmake`.
 
 ```shell
-git clone git@github.com:sptrakesh/http-router.git
+git clone https://github.com/sptrakesh/http-router.git
 mkdir http-router/build && cd http-router/build
 cmake -DCMAKE_INSTALL_PREFIX=/usr/local/spt ..
 sudo make install
