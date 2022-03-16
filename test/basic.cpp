@@ -1,0 +1,218 @@
+//
+// Created by Rakesh on 15/03/2022.
+//
+
+#include <catch2/catch_test_macros.hpp>
+#include "../src/router.h"
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
+SCENARIO( "HttpRouter test suite" )
+{
+  struct UserData {} userData;
+
+  GIVEN( "Router with a set of API endpoints" )
+  {
+    spt::http::router::HttpRouter<UserData*, bool> r;
+
+    r.add( "GET"sv, "/service/candy/:kind"sv, [](UserData* /*user*/, auto&& params)
+    {
+      REQUIRE( params.size() == 1 );
+      REQUIRE( params.contains( "kind"s ) );
+      return true;
+    } );
+
+    r.add( "GET"sv, "/service/shutdown"sv, [](UserData* /*user*/, auto&& params)
+    {
+      REQUIRE( params.empty() );
+      return true;
+    } );
+
+    r.add( "GET"sv, "/"sv, [](UserData* /*user*/, auto&& params)
+    {
+      REQUIRE( params.empty() );
+      return true;
+    } );
+
+    r.add( "GET"sv, "/:filename"sv, [](UserData* /*user*/, auto&& params)
+    {
+      REQUIRE( params.size() == 1 );
+      REQUIRE( params.contains( "filename" ) );
+      return true;
+    } );
+
+    WHEN( "Checking /service/candy/lollipop" )
+    {
+      auto url = "/service/candy/lollipop"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+
+    AND_WHEN( "Checking /service/candy/gum" )
+    {
+      auto url = "/service/candy/gum"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+
+    AND_WHEN( "Checking /service/candy/seg_råtta" )
+    {
+      auto url = "/service/candy/seg_råtta"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+
+    AND_WHEN( "Checking /service/candy/lakrits" )
+    {
+      auto url = "/service/candy/lakrits"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+
+    AND_WHEN( "Checking /service/shutdown" )
+    {
+      auto url = "/service/shutdown"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+
+    AND_WHEN( "Checking /" )
+    {
+      auto url = "/"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+
+    AND_WHEN( "Checking /some_file.html" )
+    {
+      auto url = "/some_file.html"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+
+    AND_WHEN( "Checking /another_file.jpeg" )
+    {
+      auto url = "/another_file.jpeg"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+    }
+  }
+
+  GIVEN( "Router configured with paths with trailing slash" )
+  {
+    spt::http::router::HttpRouter<UserData*, bool> r;
+    auto method = "POST"sv;
+    r.add( method, "/path/entity/"sv,
+        []( UserData* /*user*/, auto&& /* args */ )
+        { return true; } );
+
+    WHEN( "Checking root paths" )
+    {
+      auto resp = r.route( method, "/path/entity", &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+
+      resp = r.route( method, "/path/entity/", &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+
+      resp = r.route( method, "/path/entity/id", &userData );
+      REQUIRE_FALSE( resp );
+
+      resp = r.route( method, "/path/entity/id/abc", &userData );
+      REQUIRE_FALSE( resp );
+
+      resp = r.route( method, "/path/", &userData );
+      REQUIRE_FALSE( resp );
+    }
+  }
+
+  GIVEN( "Router configured with paths without trailing slash" )
+  {
+    spt::http::router::HttpRouter<UserData*, bool> r;
+    auto method = "POST"sv;
+    r.add( method, "/path/entity"sv,
+        []( UserData* /*user*/, auto&& /* args */ )
+        { return true; } );
+
+    WHEN( "Checking root paths" )
+    {
+      auto resp = r.route( method, "/path/entity", &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+
+      resp = r.route( method, "/path/entity/", &userData );
+      REQUIRE( resp );
+      REQUIRE( *resp );
+
+      resp = r.route( method, "/path/entity/id", &userData );
+      REQUIRE_FALSE( resp );
+
+      resp = r.route( method, "/path/entity/id/abc", &userData );
+      REQUIRE_FALSE( resp );
+
+      resp = r.route( method, "/path/", &userData );
+      REQUIRE_FALSE( resp );
+    }
+  }
+
+  GIVEN( "Router configured with path with multiple parameters" )
+  {
+    spt::http::router::HttpRouter<UserData*, bool> r;
+    std::string start;
+    std::string end;
+    r.add( "GET"sv, "/device/sensor/created/between/:start/:end"sv, [&start, &end](UserData* /*user*/, auto&& args)
+    {
+      REQUIRE( args.size() == 2 );
+      REQUIRE( args.contains( "start"s ) );
+      REQUIRE( args["start"s] == start );
+      REQUIRE( args.contains( "end"s ) );
+      REQUIRE( args["end"s] == end );
+      return true;
+    });
+
+    WHEN( "Checking path parameters" )
+    {
+      start = "2022-02-14T22:25:05.147Z"s;
+      end = "2022-03-14T22:25:05.147Z"s;
+      auto url = "/device/sensor/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
+      auto resp = r.route( "GET"s, url, &userData );
+      REQUIRE( resp );
+      REQUIRE_FALSE( r.route( "DELETE"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "OPTIONS"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "POST"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "PUT"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "PATCH"s, url, &userData ) );
+
+      start = "2022-01-04T22:25:05.147Z"s;
+      end = "2022-02-14T22:25:05.147Z"s;
+      url = "/device/sensor/created/between/2022-01-04T22:25:05.147Z/2022-02-14T22:25:05.147Z"s;
+      REQUIRE( r.route( "GET"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "DELETE"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "OPTIONS"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "POST"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "PUT"s, url, &userData ) );
+      REQUIRE_FALSE( r.route( "PATCH"s, url, &userData ) );
+    }
+
+    AND_WHEN( "Checking non-matching paths" )
+    {
+      r.add( "GET"sv, "/device/sensor/created/between/:start/:end"sv, [](UserData* /*user*/, auto&& /*args*/) { return true; });
+
+      auto url = "/device/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
+      REQUIRE_FALSE( r.route( "GET"s, url, &userData ) );
+
+      url = "/device/sensor/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
+      REQUIRE_FALSE( r.route( "GET"s, url, &userData ) );
+    }
+  }
+}
