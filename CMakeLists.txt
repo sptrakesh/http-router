@@ -13,7 +13,7 @@ endif()
 # Find includes in the build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
