@@ -16,17 +16,14 @@ namespace spt::http::router
   class HttpRouter
   {
   private:
-    struct RawPath
+    struct Path
     {
-      std::string path;
-      std::size_t handler;
-    };
+      Path( std::string p, std::size_t h ) : path{ std::move( p ) }, handler{ h },
+        parts{ util::split( path, 8, std::string_view{ "/" } ) } {}
 
-    struct ParameterPath
-    {
-      std::vector<std::string_view> parts;
       std::string path;
       std::size_t handler;
+      std::vector<std::string_view> parts;
     };
 
   public:
@@ -34,47 +31,27 @@ namespace spt::http::router
 
     HttpRouter& add( std::string_view method, std::string_view path, Handler&& handler )
     {
-      const auto m = std::string{ method };
-      if ( path.find( ':' ) == std::string_view::npos ) addRawPath( m, path );
-      else addParameter( m, path );
-
+      addParameter( method, path );
       handlers.push_back( std::move( handler ) );
       return *this;
     }
 
-    std::optional<Response> route( std::string_view method, std::string_view path, UserData userData )
+    std::optional<Response> route( std::string_view method, std::string_view path, UserData userData ) const
     {
       if ( method.empty() || path.empty() ) return std::nullopt;
-
-      const std::string p{ path };
-      const std::string m{ method };
-
-      if ( paths.contains( m ) )
+      auto resp = routeParameters( method, path, userData );
+      if ( !resp && path.ends_with( '/' ) )
       {
-        auto opt = routeRaw( m, p, userData );
-        if ( opt ) return opt;
-
-        if ( path.ends_with( '/' ) )
-        {
-          auto trimmed = std::string{ path.substr( 0, path.size() - 1 ) };
-          opt = routeRaw( m, trimmed, userData );
-          if ( opt ) return opt;
-        }
+        return routeParameters( method, path.substr( 0, path.size() - 1 ), userData );
       }
 
-      if ( pathParts.contains( m ) )
-      {
-        return routeParameters( m, path, userData );
-      }
-
-      return std::nullopt;
+      return resp;
     }
 
     HttpRouter()
     {
       handlers.reserve( 32 );
       paths.reserve( 32 );
-      pathParts.reserve( 32 );
     }
 
     ~HttpRouter() = default;
@@ -83,93 +60,69 @@ namespace spt::http::router
     HttpRouter& operator=(const HttpRouter&) = delete;
 
   private:
-    void addRawPath( const std::string& method, std::string_view path )
-    {
-      if ( !paths.contains( method ) )
-      {
-        paths.template emplace( method, std::vector<RawPath>{} );
-      }
-      auto& v = paths[method];
-      v.push_back( { std::string{ path }, handlers.size() } );
-
-      std::sort( std::begin( v ), std::end( v ), []( const RawPath& p1, const RawPath& p2 )
-      {
-        return p1.path < p2.path;
-      } );
-    }
-
-    void addParameter( const std::string& method, std::string_view path )
+    void addParameter( std::string_view method, std::string_view path )
     {
       using namespace std::string_view_literals;
-      const auto parts = util::split( path, 8, "/"sv );
-      if ( !pathParts.contains( method ) )
-      {
-        auto v = std::vector<ParameterPath>{};
-        v.reserve( 32 );
-        pathParts.template emplace( method, std::move( v ) );
-      }
-      auto& v = pathParts[method];
-      v.push_back( { parts, std::string{ path }, handlers.size() } );
 
-      std::sort( std::begin( v ), std::end( v ), []( const ParameterPath& p1, const ParameterPath& p2 )
+      auto full = std::string{};
+      full.reserve( 1 + method.size() + path.size() );
+      full.append( "/" ).append( method ).append( path );
+      paths.template emplace_back( full, handlers.size() );
+
+      std::sort( std::begin( paths ), std::end( paths ), []( const Path& p1, const Path& p2 )
       {
         return p1.path < p2.path;
       } );
     }
 
-    std::optional<Response> routeRaw( const std::string& method, const std::string& path, UserData userData )
-    {
-      auto& v = paths[method];
-      auto iter = std::lower_bound( std::begin( v ), std::end( v ), path,
-          []( const RawPath& p, const std::string& pth )
-          {
-            return p.path < pth;
-          } );
-
-      if ( iter != std::end( v ) )
-      {
-        if ( path == iter->path )
-        {
-          return handlers[iter->handler]( userData, {} );
-        }
-
-        if ( iter->path.ends_with( '/' ) )
-        {
-          auto view = std::string_view{ iter->path };
-          view = view.substr( 0, view.size() - 1 );
-          auto p = std::string_view{ path };
-          if ( p == view )
-          {
-            return handlers[iter->handler]( userData, {} );
-          }
-        }
-      }
-
-      return std::nullopt;
-    }
-
-    std::optional<Response> routeParameters( const std::string& method, std::string_view path, UserData userData )
+    std::optional<Response> routeParameters( std::string_view method,
+        std::string_view path, UserData userData ) const
     {
       using namespace std::string_view_literals;
       std::unordered_map<std::string_view, std::string_view> params{};
 
-      const auto parts = util::split( path, 8, "/"sv );
-      auto handler = -1;
-      for ( auto&& pp : pathParts[method] )
-      {
-        if ( parts.size() != pp.parts.size() ) continue;
+      auto full = std::string{};
+      full.reserve( 1 + method.size() + path.size() );
+      full.append( "/" ).append( method ).append( path );
 
-        auto pview = std::string_view{ pp.path };
-        auto iter = pview.find( ':' );
-        if ( auto view = pview.substr( 0, iter ); !path.starts_with( view ) ) continue;
+      auto iter = std::lower_bound( std::cbegin( paths ), std::cend( paths ), full,
+          []( const Path& p, const std::string& pth )
+          {
+            return p.path < pth;
+          } );
+
+      if ( iter == std::cend( paths ) ) return std::nullopt;
+      if ( full == iter->path ) return handlers[iter->handler]( userData, std::move( params ) );
+      if ( iter->path.ends_with( '/' ) )
+      {
+        auto view = std::string_view{ iter->path };
+        view = view.substr( 0, view.size() - 1 );
+        auto p = std::string_view{ full };
+        if ( p == view )
+        {
+          return handlers[iter->handler]( userData, std::move( params ) );
+        }
+      }
+
+      const auto parts = util::split( full, 8, "/"sv );
+      auto handler = -1;
+      for ( ; iter != std::cend( paths ); ++iter )
+      {
+        if ( parts.size() != iter->parts.size() ) continue;
+
+        auto pview = std::string_view{ iter->path };
+        auto idx = pview.find( '{' );
+        if ( auto view = pview.substr( 0, idx ); !full.starts_with( view ) ) continue;
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {
-          if ( parts[i] == pp.parts[i] ) continue;
-          if ( pp.parts[i][0] != ':' ) break;
+          if ( parts[i] == iter->parts[i] ) continue;
+          if ( iter->parts[i][0] != '{' ) break;
 
-          params[pp.parts[i].substr( 1 )] = parts[i];
-          handler = pp.handler;
+          auto key = std::string{ iter->parts[i].substr( 1, iter->parts[i].size() - 2 ) };
+          if ( key == full ) {}
+          params[iter->parts[i].substr( 1, iter->parts[i].size() - 2 )] = parts[i];
+          handler = iter->handler;
         }
       }
 
@@ -178,8 +131,7 @@ namespace spt::http::router
     }
 
     std::vector<Handler> handlers{};
-    std::unordered_map<std::string, std::vector<RawPath>> paths;
-    std::unordered_map<std::string, std::vector<ParameterPath>> pathParts;
+    std::vector<Path> paths;
   };
 
   /*

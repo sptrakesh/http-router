@@ -16,7 +16,7 @@ SCENARIO( "HttpRouter test suite" )
   {
     spt::http::router::HttpRouter<UserData*, bool> r;
 
-    r.add( "GET"sv, "/service/candy/:kind"sv, [](UserData* /*user*/, auto&& params)
+    r.add( "GET"sv, "/service/candy/{kind}"sv, [](UserData* /*user*/, auto&& params)
     {
       REQUIRE( params.size() == 1 );
       REQUIRE( params.contains( "kind"s ) );
@@ -35,7 +35,7 @@ SCENARIO( "HttpRouter test suite" )
       return true;
     } );
 
-    r.add( "GET"sv, "/:filename"sv, [](UserData* /*user*/, auto&& params)
+    r.add( "GET"sv, "/{filename}"sv, [](UserData* /*user*/, auto&& params)
     {
       REQUIRE( params.size() == 1 );
       REQUIRE( params.contains( "filename" ) );
@@ -170,7 +170,7 @@ SCENARIO( "HttpRouter test suite" )
     spt::http::router::HttpRouter<UserData*, bool> r;
     std::string start;
     std::string end;
-    r.add( "GET"sv, "/device/sensor/created/between/:start/:end"sv, [&start, &end](UserData* /*user*/, auto&& args)
+    r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [&start, &end](UserData* /*user*/, auto&& args)
     {
       REQUIRE( args.size() == 2 );
       REQUIRE( args.contains( "start"s ) );
@@ -206,7 +206,7 @@ SCENARIO( "HttpRouter test suite" )
 
     AND_WHEN( "Checking non-matching paths" )
     {
-      r.add( "GET"sv, "/device/sensor/created/between/:start/:end"sv, [](UserData* /*user*/, auto&& /*args*/) { return true; });
+      r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [](UserData* /*user*/, auto&& /*args*/) { return true; });
 
       auto url = "/device/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
       REQUIRE_FALSE( r.route( "GET"s, url, &userData ) );
