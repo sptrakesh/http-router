@@ -9,7 +9,7 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-//#ifdef RUN_BENCHMARK
+#ifdef RUN_BENCHMARK
 SCENARIO( "Benchmark http router" )
 {
   struct UserData
@@ -70,4 +70,4 @@ SCENARIO( "Benchmark http router" )
     std::cout << "Checksum: " << userData.routed << std::endl << std::endl;
   }
 }
-//#endif
+#endif

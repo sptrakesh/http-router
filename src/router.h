@@ -18,12 +18,19 @@ namespace spt::http::router
   private:
     struct Path
     {
-      Path( std::string p, std::size_t h ) : path{ std::move( p ) }, handler{ h },
-        parts{ util::split( path, 8, std::string_view{ "/" } ) } {}
+      Path( std::string&& p, std::size_t h ) : path{ std::move( p ) },
+        parts{ util::split( path, 8, std::string_view{ "/" } ) },
+        handler{ h } {}
+
+      ~Path() = default;
+      Path(Path&&) = default;
+      Path& operator=(Path&&) = default;
+      Path(const Path&) = delete;
+      Path& operator=(const Path&) = delete;
 
       std::string path;
-      std::size_t handler;
       std::vector<std::string_view> parts;
+      std::size_t handler;
     };
 
   public:
@@ -36,11 +43,12 @@ namespace spt::http::router
       return *this;
     }
 
-    std::optional<Response> route( std::string_view method, std::string_view path, UserData userData ) const
+    std::optional<Response> route( std::string_view method, std::string_view path,
+        UserData userData, bool checkWithoutTrailingSlash = false ) const
     {
       if ( method.empty() || path.empty() ) return std::nullopt;
       auto resp = routeParameters( method, path, userData );
-      if ( !resp && path.ends_with( '/' ) )
+      if ( !resp && checkWithoutTrailingSlash && path.ends_with( '/' ) )
       {
         return routeParameters( method, path.substr( 0, path.size() - 1 ), userData );
       }
@@ -67,7 +75,7 @@ namespace spt::http::router
       auto full = std::string{};
       full.reserve( 1 + method.size() + path.size() );
       full.append( "/" ).append( method ).append( path );
-      paths.template emplace_back( full, handlers.size() );
+      paths.template emplace_back( std::move( full ), handlers.size() );
 
       std::sort( std::begin( paths ), std::end( paths ), []( const Path& p1, const Path& p2 )
       {
@@ -93,16 +101,6 @@ namespace spt::http::router
 
       if ( iter == std::cend( paths ) ) return std::nullopt;
       if ( full == iter->path ) return handlers[iter->handler]( userData, std::move( params ) );
-      if ( iter->path.ends_with( '/' ) )
-      {
-        auto view = std::string_view{ iter->path };
-        view = view.substr( 0, view.size() - 1 );
-        auto p = std::string_view{ full };
-        if ( p == view )
-        {
-          return handlers[iter->handler]( userData, std::move( params ) );
-        }
-      }
 
       const auto parts = util::split( full, 8, "/"sv );
       auto handler = -1;
@@ -110,13 +108,16 @@ namespace spt::http::router
       {
         if ( parts.size() != iter->parts.size() ) continue;
 
-        auto pview = std::string_view{ iter->path };
-        auto idx = pview.find( '{' );
-        if ( auto view = pview.substr( 0, idx ); !full.starts_with( view ) ) continue;
-
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {
-          if ( parts[i] == iter->parts[i] ) continue;
+          if ( parts[i] == iter->parts[i] )
+          {
+            if ( i == parts.size() - 1 )
+            {
+              handler = iter->handler;
+            }
+            else continue;
+          }
           if ( iter->parts[i][0] != '{' ) break;
 
           auto key = std::string{ iter->parts[i].substr( 1, iter->parts[i].size() - 2 ) };
@@ -126,7 +127,7 @@ namespace spt::http::router
         }
       }
 
-      if ( params.empty() ) return std::nullopt;
+      if ( handler == -1 ) return std::nullopt;
       return handlers[handler]( userData, std::move( params ) );
     }
 

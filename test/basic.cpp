@@ -150,7 +150,7 @@ SCENARIO( "HttpRouter test suite" )
       REQUIRE( resp );
       REQUIRE( *resp );
 
-      resp = r.route( method, "/path/entity/", &userData );
+      resp = r.route( method, "/path/entity/", &userData, true );
       REQUIRE( resp );
       REQUIRE( *resp );
 
