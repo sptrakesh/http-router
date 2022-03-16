@@ -36,6 +36,14 @@ namespace spt::http::router
   public:
     using Handler = std::function<Response( UserData, std::unordered_map<std::string_view, std::string_view>&& )>;
 
+    /**
+     * Add the specified path for the specified HTTP method/verb to the router.
+     *
+     * @param method The HTTP method/verb for which the route is configured.
+     * @param path The path to configure.  Either a static (no parameters in curly braces) or parametrised value.
+     * @param handler The callback function to invoke if a request path matches.
+     * @return A reference to the router for chaining.
+     */
     HttpRouter& add( std::string_view method, std::string_view path, Handler&& handler )
     {
       addParameter( method, path );
@@ -43,6 +51,16 @@ namespace spt::http::router
       return *this;
     }
 
+    /**
+     * Attempt to route the request for specified path and method.
+     * @param method The HTTP method/verb from the client.
+     * @param path The request URI path.
+     * @param userData The custom data used by the handler callback function.
+     * @param checkWithoutTrailingSlash If `true` and if the `path` ends with
+     *   a trailing slash ('/'), attempt to find a match after trimming the
+     *   trailing slash in case the original path does not match.
+     * @return Returns std::nullopt if no configured route matches.
+     */
     std::optional<Response> route( std::string_view method, std::string_view path,
         UserData userData, bool checkWithoutTrailingSlash = false ) const
     {
