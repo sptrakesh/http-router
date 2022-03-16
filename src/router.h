@@ -128,9 +128,6 @@ namespace spt::http::router
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {
-          auto t1 = std::string{ parts[i] };
-          auto t2 = std::string{ iter->parts[i] };
-          if ( t1 == t2 ) {}
           if ( parts[i] == iter->parts[i] )
           {
             if ( i == parts.size() - 1 )
