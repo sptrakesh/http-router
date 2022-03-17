@@ -19,7 +19,7 @@ namespace spt::http::router
     struct Path
     {
       Path( std::string&& p, std::size_t h ) : path{ std::move( p ) },
-        parts{ util::split( path, 8, std::string{ "/" } ) },
+        parts{ util::split<std::string>( path, 8, std::string{ "/" } ) },
         handler{ h } {}
 
       ~Path() = default;
@@ -120,7 +120,7 @@ namespace spt::http::router
       if ( iter == std::cend( paths ) ) return std::nullopt;
       if ( full == iter->path ) return handlers[iter->handler]( userData, std::move( params ) );
 
-      const auto parts = util::split( full, 8, "/"sv );
+      const auto parts = util::split<std::string_view>( full, 8, "/"sv );
       auto handler = -1;
       for ( ; iter != std::cend( paths ); ++iter )
       {
