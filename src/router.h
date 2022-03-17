@@ -19,7 +19,7 @@ namespace spt::http::router
     struct Path
     {
       Path( std::string&& p, std::size_t h ) : path{ std::move( p ) },
-        parts{ util::split( path, 8, std::string_view{ "/" } ) },
+        parts{ util::split( path, 8, std::string{ "/" } ) },
         handler{ h } {}
 
       ~Path() = default;
@@ -29,7 +29,7 @@ namespace spt::http::router
       Path& operator=(const Path&) = delete;
 
       std::string path;
-      std::vector<std::string_view> parts;
+      std::vector<std::string> parts;
       std::size_t handler;
     };
 
@@ -128,7 +128,8 @@ namespace spt::http::router
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {
-          if ( parts[i] == iter->parts[i] )
+          auto iview = std::string_view{ iter->parts[i] };
+          if ( parts[i] == iview )
           {
             if ( i == parts.size() - 1 )
             {
@@ -136,9 +137,9 @@ namespace spt::http::router
             }
             else continue;
           }
-          if ( iter->parts[i][0] != '{' ) break;
+          if ( iview[0] != '{' ) break;
 
-          params[iter->parts[i].substr( 1, iter->parts[i].size() - 2 )] = parts[i];
+          params[iview.substr( 1, iview.size() - 2 )] = parts[i];
           handler = iter->handler;
         }
 

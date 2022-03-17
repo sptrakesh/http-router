@@ -117,13 +117,13 @@ a sorted `std::vector`, and searched for using binary search.
 Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are below:
 ```shell
 [2.46063 million req/sec] for URL: /service/candy/lollipop
-[3.01114 million req/sec] for URL: /service/candy/gum
-[2.53743 million req/sec] for URL: /service/candy/seg_råtta
-[2.57798 million req/sec] for URL: /service/candy/lakrits
-[15.2439 million req/sec] for URL: /service/shutdown
-[16.7504 million req/sec] for URL: /
-[3.61925 million req/sec] for URL: /some_file.html
-[3.48675 million req/sec] for URL: /another_file.jpeg
+[3.11333 million req/sec] for URL: /service/candy/gum
+[2.81373 million req/sec] for URL: /service/candy/seg_råtta
+[2.84495 million req/sec] for URL: /service/candy/lakrits
+[16.9779 million req/sec] for URL: /service/shutdown
+[18.622 million req/sec] for URL: /
+[3.89864 million req/sec] for URL: /some_file.html
+[3.79075 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 
