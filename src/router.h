@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "error.h"
 #include "split.h"
-#include <algorithm>
 #include <optional>
 #include <unordered_map>
 
@@ -96,11 +96,23 @@ namespace spt::http::router
   private:
     void addParameter( std::string_view method, std::string_view path )
     {
+      using namespace std::string_literals;
       using namespace std::string_view_literals;
 
       auto full = std::string{};
       full.reserve( 1 + method.size() + path.size() );
       full.append( "/" ).append( method ).append( path );
+
+      auto iter = std::lower_bound( std::cbegin( paths ), std::cend( paths ), full,
+          []( const Path& p, const std::string& pth )
+          {
+            return p.path < pth;
+          } );
+      if ( iter != std::cend( paths ) && full == iter->path )
+      {
+        throw DuplicateRouteError{ "Duplicate path "s + std::string{ path } };
+      }
+
       paths.template emplace_back( std::move( full ), handlers.size() );
 
       std::sort( std::begin( paths ), std::end( paths ), []( const Path& p1, const Path& p2 )

@@ -206,13 +206,19 @@ SCENARIO( "HttpRouter test suite" )
 
     AND_WHEN( "Checking non-matching paths" )
     {
-      r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [](UserData* /*user*/, auto&& /*args*/) { return true; });
-
       auto url = "/device/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
       REQUIRE_FALSE( r.route( "GET"s, url, &userData ) );
 
       url = "/device/sensor/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
       REQUIRE_FALSE( r.route( "GET"s, url, &userData ) );
+    }
+
+    AND_WHEN( "Registering duplicate route" )
+    {
+      REQUIRE_THROWS_AS(
+          r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [](UserData*, auto&&) { return true; }),
+          spt::http::router::DuplicateRouteError
+      );
     }
   }
 }
