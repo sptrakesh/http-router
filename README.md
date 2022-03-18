@@ -4,6 +4,7 @@
 * [Use](#use)
 * [Docker](#docker)
 * [Performance](#performance)
+* [FastRouter](#fast-router)
 
 Simple general purpose HTTP path based request router.  No assumption is made
 on the type of framework being used.  We have used it mainly with
@@ -128,3 +129,29 @@ Checksum: 80000000
 ```
 
 These were by computing the average time to route each URI path 10,000,000 times.
+
+## Fast Router
+The fast router is a wrapper around [HttpRouter](https://github.com/killvxk/HttpRouter).
+The original implementation has been slightly modified and updated.  There are
+some cases where it does not work exactly as the simple router, including incorrect
+handling in some cases (search for comment with Issue in test suite), but when
+those issues are not relevant (or do not kick in for your routes), use it for
+an optimal router.
+
+### Path Parameters
+Path parameters are handled differently.  Use the `:<param name>` pattern to
+specify parameters.  The handler callback function also returns a `std::vector`
+of parameter values instead of `std::unordered_map`.
+
+### Performance
+Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
+```shell
+[7.8125 million req/sec] for URL: /service/candy/lollipop
+[15.4083 million req/sec] for URL: /service/candy/gum
+[8.19001 million req/sec] for URL: /service/candy/seg_råtta
+[8.16993 million req/sec] for URL: /service/candy/lakrits
+[15.5763 million req/sec] for URL: /service/shutdown
+[21.4133 million req/sec] for URL: /
+[20.9205 million req/sec] for URL: /some_file.html
+[21.8341 million req/sec] for URL: /another_file.jpeg
+```

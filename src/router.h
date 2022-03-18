@@ -51,6 +51,8 @@ namespace spt::http::router
      * @param path The path to configure.  Either a static (no parameters in curly braces) or parametrised value.
      * @param handler The callback function to invoke if a request path matches.
      * @return A reference to the router for chaining.
+     * @throws DuplicateRouteError If the specified `path` has been configured
+     *   for the specified `method` already.
      */
     HttpRouter& add( std::string_view method, std::string_view path, Handler&& handler )
     {
