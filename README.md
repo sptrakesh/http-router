@@ -9,9 +9,9 @@ Simple general purpose HTTP path based request router.  No assumption is made
 on the type of framework being used.  We have used it mainly with
 [nghttp2](https://www.nghttp2.org/documentation/libnghttp2_asio.html).
 * Supports static and parametrised URI paths.
-* Parameters (slugs) are represented curly brace enclosed name `{param}`.
+* Parameters (slugs) are represented using curly brace enclosed name `{param}`.
   * Curly brace form was chosen in favour of `:param` for sorting purpose.
-  * Sorting with `{` also means use of non-ascii characters in path will have inconsistent behaviour.
+  * Sorting with `{` implies use of non-ascii characters in path will have inconsistent behaviour.
 * Templated on the **Response** type and an input **UserData**.
 * Function based routing.  Successful matches are *routed* to the specified
   *callback* function.

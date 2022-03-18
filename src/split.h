@@ -12,7 +12,7 @@ namespace spt::util
 {
   template <typename String>
   std::vector<String> split( std::string_view csv,
-      std::size_t sizehint = 8, std::string_view delims = "," )
+      std::size_t sizehint = 8, std::string_view delims = "/" )
   {
     std::vector<String> output;
     output.reserve( sizehint );

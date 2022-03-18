@@ -6,20 +6,25 @@
 
 #include "split.h"
 #include <algorithm>
-#include <memory>
 #include <optional>
 #include <unordered_map>
 
 namespace spt::http::router
 {
+  /**
+   * Simple path based HTTP request router.  Configured paths are stored in
+   * a sorted vector, and request path matching is performed via binary search.
+   * @tparam UserData User defined structure with the context necessary for
+   *   the handler function.
+   * @tparam Response The response from the handler function.
+   */
   template<typename UserData, typename Response>
   class HttpRouter
   {
-  private:
     struct Path
     {
       Path( std::string&& p, std::size_t h ) : path{ std::move( p ) },
-        parts{ util::split<std::string>( path, 8, std::string{ "/" } ) },
+        parts{ util::split<std::string>( path ) },
         handler{ h } {}
 
       ~Path() = default;
@@ -34,6 +39,9 @@ namespace spt::http::router
     };
 
   public:
+    /**
+     * Request handler callback function.  Path parameters extracted are passed as an unordered_map.
+     */
     using Handler = std::function<Response( UserData, std::unordered_map<std::string_view, std::string_view>&& )>;
 
     /**
@@ -120,7 +128,7 @@ namespace spt::http::router
       if ( iter == std::cend( paths ) ) return std::nullopt;
       if ( full == iter->path ) return handlers[iter->handler]( userData, std::move( params ) );
 
-      const auto parts = util::split<std::string_view>( full, 8, "/"sv );
+      const auto parts = util::split<std::string_view>( full );
       auto handler = -1;
       for ( ; iter != std::cend( paths ); ++iter )
       {
