@@ -6,6 +6,7 @@
 
 #include "error.h"
 #include "split.h"
+#include <mutex>
 #include <optional>
 #include <unordered_map>
 
@@ -46,7 +47,7 @@ namespace spt::http::router
 
     /**
      * Add the specified path for the specified HTTP method/verb to the router.
-     * This is not thread safe.
+     * This is thread safe.
      *
      * @param method The HTTP method/verb for which the route is configured.
      * @param path The path to configure.  Either a static (no parameters in curly braces) or parametrised value.
@@ -57,6 +58,7 @@ namespace spt::http::router
      */
     HttpRouter& add( std::string_view method, std::string_view path, Handler&& handler )
     {
+      auto lock = std::scoped_lock<std::mutex>{ mutex };
       addParameter( method, path );
       handlers.push_back( std::move( handler ) );
       return *this;
@@ -175,5 +177,6 @@ namespace spt::http::router
 
     std::vector<Handler> handlers{};
     std::vector<Path> paths;
+    std::mutex mutex;
   };
 }

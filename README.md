@@ -15,9 +15,9 @@ on the type of framework being used.  We have used it mainly with
   * Sorting with `{` implies use of non-ascii characters in path will have inconsistent behaviour.
 * Templated on the **Response** type and an input **UserData**.
 * Function based routing.  Successful matches are *routed* to the specified
-  *callback* function.
+  *handler* callback function.
   * Callback function has signature `Response( UserData, std::unordered_map<std::string_view, std::string_view>&& )` 
-  * The `std::unordered_map` will hold the parsed *parameter*->*value* pairs.
+  * The `std::unordered_map` will hold the parsed *parameter->value* pairs.
 
 ## Install
 No install is necessary.  Copy the [router.h](src/router.h) and [split.h](src/split.h)
@@ -33,12 +33,13 @@ sudo make install
 ```
 
 ## Use
-The **HttpRouter<Response>** class exposes two methods that are used to set up
+The **HttpRouter<UserData, Response>** class exposes two methods that are used to set up
 and perform routing:
 * **add** - Use to add paths or parametrised paths to the router.
-  * This is *not* thread safe.  Configuring routing should generally not need
-  thread safety, but if you need to ensure safety, use mutexes or similar
-  concepts to prevent concurrent access to router.
+  * This is thread safe.  Configuring routing should generally not need
+  thread safety, but just in case route additions are set up lazily in a
+  multi-threaded environment, a `std::mutex` is used to ensure thread safety.
+  * Duplicate routes will throw a [`spt::http::router::DuplicateRouteError`](src/error.h) exception.
 * **route** - When a client request is received, delegate to the router to handle
   the request.
 
@@ -58,26 +59,26 @@ int main()
   } userData;
   
   spt::http::router::HttpRouter<const UserData&, bool> r;
-  r.add( "GET"sv, "/service/candy/{kind}"sv, [](const UserData& /*user*/, auto&& params)
+  r.add( "GET"sv, "/service/candy/{kind}"sv, [](const UserData&, auto params)
   {
     assert( params.size() == 1 );
     assert( params.contains( "kind"s ) );
     return true;
   } );
   
-  r.add( "GET"sv, "/service/shutdown"sv, [](const UserData& /*user*/, auto&& params)
+  r.add( "GET"sv, "/service/shutdown"sv, [](const UserData&, auto params)
   {
     assert( params.empty() );
     return true;
   } );
 
-  r.add( "GET"sv, "/"sv, [](const UserData& /*user*/, auto&& params)
+  r.add( "GET"sv, "/"sv, [](const UserData&, auto params)
   {
     assert( params.empty() );
     return true;
   } );
 
-  r.add( "GET"sv, "/{filename}/type/{mime}"sv, [](const UserData& /*user*/, auto&& params)
+  r.add( "GET"sv, "/{filename}/type/{mime}"sv, [](const UserData&, auto params)
   {
     assert( params.size() == 2 );
     assert( params.contains( "filename" ) );
@@ -106,7 +107,7 @@ int main()
 ```
 
 The `route` method returns a `std::optional<Response>`.  If no configured path
-matches returns `std::nullopt`.  Otherwise, returns the response from the callback
+matches, returns `std::nullopt`.  Otherwise, returns the response from the callback
 function.
 
 ## Docker
@@ -120,6 +121,8 @@ a sorted `std::vector`, and searched for using binary search.
 
 Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are in the following sections.
 These were by computing the average time to route each URI path 10,000,000 times.
+The Linux numbers were from a VM running on Parallels on Mac, bare metal
+numbers may be higher.
 
 <details>
   <summary><strong>Mac OS X Apple Clang</strong></summary>

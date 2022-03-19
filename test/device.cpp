@@ -15,47 +15,47 @@ SCENARIO( "Sensor Device routes" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::HttpRouter<const UserData *, bool> r;
-    r.add( method, "/device/sensor/", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 0 );
       return true;
     } );
-    r.add( method, "/device/sensor/id/{id}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/id/{id}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       return true;
     } );
-    r.add( method, "/device/sensor/identifier/{identifier}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/identifier/{identifier}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       return true;
     } );
-    r.add( method, "/device/sensor/customer/code/{code}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/customer/code/{code}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       return true;
     } );
-    r.add( method, "/device/sensor/facility/id/{id}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/facility/id/{id}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       return true;
     } );
-    r.add( method, "/device/sensor/count/references/{id}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/count/references/{id}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       return true;
     } );
-    r.add( method, "/device/sensor/history/summary/{id}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/history/summary/{id}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       return true;
     } );
-    r.add( method, "/device/sensor/history/document/{id}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/history/document/{id}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       return true;
     } );
-    r.add( method, "/device/sensor/{property}/between/{start}/{end}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/{property}/between/{start}/{end}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 3 );
       return true;
@@ -139,7 +139,7 @@ SCENARIO( "Sensor Device routes" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::HttpRouter<const UserData *, bool> r;
-    r.add( method, "/device/sensor/id/{id}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/id/{id}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
@@ -161,7 +161,7 @@ SCENARIO( "Sensor Device routes" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::HttpRouter<const UserData *, bool> r;
-    r.add( method, "/device/sensor/identifier/{identifier}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/identifier/{identifier}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "identifier"sv ) );
@@ -183,7 +183,7 @@ SCENARIO( "Sensor Device routes" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::HttpRouter<const UserData *, bool> r;
-    r.add( method, "/device/sensor/customer/code/{code}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/customer/code/{code}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "code"sv ) );
@@ -204,7 +204,7 @@ SCENARIO( "Sensor Device routes" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::HttpRouter<const UserData *, bool> r;
-    r.add( method, "/device/sensor/{property}/between/{start}/{end}", []( const UserData*, auto&& args )
+    r.add( method, "/device/sensor/{property}/between/{start}/{end}", []( const UserData*, auto args )
     {
       REQUIRE( args.size() == 3 );
       REQUIRE( args.contains( "property"sv ) );

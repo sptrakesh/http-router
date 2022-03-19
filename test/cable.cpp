@@ -16,7 +16,7 @@ SCENARIO( "Cable routes" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::HttpRouter<const UserData&, bool> r;
-    r.add( method, "/cable/installed/{type}/between/{start}/{end}", []( const UserData&, auto&& args )
+    r.add( method, "/cable/installed/{type}/between/{start}/{end}", []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 3 );
       REQUIRE( args.contains( "type"sv ) );
@@ -27,7 +27,7 @@ SCENARIO( "Cable routes" )
       REQUIRE( args["end"sv] == "2022-03-17T22:14:42.692Z"sv );
       return true;
     } );
-    r.add( method, "/cable/installed/cut/sheet/id/{id}/", []( const UserData&, auto&& args )
+    r.add( method, "/cable/installed/cut/sheet/id/{id}/", []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
@@ -60,7 +60,7 @@ SCENARIO( "Cable router fast" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::FastRouter<const UserData&, bool> r;
-    r.add( method, "/cable/installed/:type/between/:start/:end", []( const UserData&, auto&& args )
+    r.add( method, "/cable/installed/:type/between/:start/:end", []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 3 );
       REQUIRE( args[0].sv() == "created"sv );
@@ -68,7 +68,7 @@ SCENARIO( "Cable router fast" )
       REQUIRE( args[2].sv() == "2022-03-17T22:14:42.692Z"sv );
       return true;
     } );
-    r.add( method, "/cable/installed/cut/sheet/id/:id/", []( const UserData&, auto&& args )
+    r.add( method, "/cable/installed/cut/sheet/id/:id/", []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args[0].sv() == "62326132e7a2e020c6652e38"sv );

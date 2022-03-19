@@ -14,62 +14,62 @@ SCENARIO( "Cut sheet routes fast" )
     const auto method = "GET"s;
     struct UserData {} userData;
     spt::http::router::FastRouter<const UserData&, std::vector<killvxk::string_view>> r;
-    r.add( method, "/cut/sheet/"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.empty() );
       return args;
     } );
-    r.add( method, "/cut/sheet/id/:id"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/id/:id"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/identifier/:identifier"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/identifier/:identifier"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/customer/code/:code"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/customer/code/:code"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/facility/id/:id"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/facility/id/:id"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/count/references/:id"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/count/references/:id"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/history/summary/:id"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/history/summary/:id"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/history/document/:id"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/history/document/:id"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/:type/between/:start/:end"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/:type/between/:start/:end"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 3 );
       return args;
     } );
-    r.add( method, "/cut/sheet/work/order/id/:id/"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/work/order/id/:id/"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( method, "/cut/sheet/reel/with/cable/id/:id/"sv, []( const UserData&, auto&& args )
+    r.add( method, "/cut/sheet/reel/with/cable/id/:id/"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;
     } );
-    r.add( "DELETE"sv, "/cut/sheet/id/:id"sv, []( const UserData&, auto&& args )
+    r.add( "DELETE"sv, "/cut/sheet/id/:id"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
       return args;

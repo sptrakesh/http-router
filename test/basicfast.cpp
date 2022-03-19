@@ -16,25 +16,25 @@ SCENARIO( "FastRouter test suite" )
   {
     spt::http::router::FastRouter<const UserData&, bool> r;
 
-    r.add( "GET"sv, "/service/candy/:kind"sv, [](const UserData&, auto&& params)
+    r.add( "GET"sv, "/service/candy/:kind"sv, [](const UserData&, auto params)
     {
       REQUIRE( params.size() == 1 );
       return true;
     } );
 
-    r.add( "GET"sv, "/service/shutdown"sv, [](const UserData&, auto&& params)
+    r.add( "GET"sv, "/service/shutdown"sv, [](const UserData&, auto params)
     {
       REQUIRE( params.empty() );
       return true;
     } );
 
-    r.add( "GET"sv, "/"sv, [](const UserData&, auto&& params)
+    r.add( "GET"sv, "/"sv, [](const UserData&, auto params)
     {
       REQUIRE( params.empty() );
       return true;
     } );
 
-    r.add( "GET"sv, "/:filename"sv, [](const UserData&, auto&& params)
+    r.add( "GET"sv, "/:filename"sv, [](const UserData&, auto params)
     {
       REQUIRE( params.size() == 1 );
       return true;
@@ -109,7 +109,7 @@ SCENARIO( "FastRouter test suite" )
   {
     spt::http::router::FastRouter<const UserData&, bool> r;
     auto method = "POST"sv;
-    r.add( method, "/path/entity/"sv, []( const UserData&, auto&& ) { return true; } );
+    r.add( method, "/path/entity/"sv, []( const UserData&, auto ) { return true; } );
 
     WHEN( "Checking root paths" )
     {
@@ -136,7 +136,7 @@ SCENARIO( "FastRouter test suite" )
   {
     spt::http::router::FastRouter<const UserData&, bool> r;
     auto method = "POST"sv;
-    r.add( method, "/path/entity"sv, []( const UserData&, auto&& ) { return true; } );
+    r.add( method, "/path/entity"sv, []( const UserData&, auto ) { return true; } );
 
     WHEN( "Checking root paths" )
     {
@@ -164,7 +164,7 @@ SCENARIO( "FastRouter test suite" )
     spt::http::router::FastRouter<const UserData&, bool> r;
     std::string_view start;
     std::string_view end;
-    r.add( "GET"sv, "/device/sensor/created/between/:start/:end"sv, [&start, &end](const UserData&, auto&& args)
+    r.add( "GET"sv, "/device/sensor/created/between/:start/:end"sv, [&start, &end](const UserData&, auto args)
     {
       REQUIRE( args.size() == 2 );
       REQUIRE( args[0].sv() == start );
