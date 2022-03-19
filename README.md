@@ -118,7 +118,10 @@ as a base image when building your target image.
 Router is not optimised for high performance.  Configured paths are stored in
 a sorted `std::vector`, and searched for using binary search.
 
-Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are below:
+Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are in the following sections.
+These were by computing the average time to route each URI path 10,000,000 times.
+
+### Mac OS X Apple Clang
 ```shell
 [2.46063 million req/sec] for URL: /service/candy/lollipop
 [3.11333 million req/sec] for URL: /service/candy/gum
@@ -131,7 +134,18 @@ Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are below:
 Checksum: 80000000
 ```
 
-These were by computing the average time to route each URI path 10,000,000 times.
+### Linux GCC 11.2
+```shell
+[5.40833 million req/sec] for URL: /service/candy/lollipop
+[5.58036 million req/sec] for URL: /service/candy/gum
+[5.95593 million req/sec] for URL: /service/candy/seg_råtta
+[5.87889 million req/sec] for URL: /service/candy/lakrits
+[21.2314 million req/sec] for URL: /service/shutdown
+[22.1239 million req/sec] for URL: /
+[6.64452 million req/sec] for URL: /some_file.html
+[6.45578 million req/sec] for URL: /another_file.jpeg
+Checksum: 80000000
+```
 
 ## Fast Router
 The fast router is a wrapper around [HttpRouter](https://github.com/killvxk/HttpRouter).
@@ -148,6 +162,8 @@ of parameter values instead of `std::unordered_map`.
 
 ### Performance
 Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
+
+#### Mac OS X Apple Clang
 ```shell
 [7.8125 million req/sec] for URL: /service/candy/lollipop
 [15.4083 million req/sec] for URL: /service/candy/gum
@@ -157,4 +173,16 @@ Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
 [21.4133 million req/sec] for URL: /
 [20.9205 million req/sec] for URL: /some_file.html
 [21.8341 million req/sec] for URL: /another_file.jpeg
+```
+
+#### Linux GCC 11.2
+```shell
+[16.2338 million req/sec] for URL: /service/candy/lollipop
+[15.3139 million req/sec] for URL: /service/candy/gum
+[17.3611 million req/sec] for URL: /service/candy/seg_råtta
+[17.2414 million req/sec] for URL: /service/candy/lakrits
+[17.452 million req/sec] for URL: /service/shutdown
+[33.557 million req/sec] for URL: /
+[21.9298 million req/sec] for URL: /some_file.html
+[22.2717 million req/sec] for URL: /another_file.jpe
 ```
