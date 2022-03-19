@@ -121,7 +121,9 @@ a sorted `std::vector`, and searched for using binary search.
 Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are in the following sections.
 These were by computing the average time to route each URI path 10,000,000 times.
 
-### Mac OS X Apple Clang
+<details>
+  <summary><strong>Mac OS X Apple Clang</strong></summary>
+
 ```shell
 [2.46063 million req/sec] for URL: /service/candy/lollipop
 [3.11333 million req/sec] for URL: /service/candy/gum
@@ -133,8 +135,11 @@ These were by computing the average time to route each URI path 10,000,000 times
 [3.79075 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
+</details>
 
-### Linux GCC 11.2
+<details>
+  <summary><strong>Linux GCC 11.2</strong></summary>
+
 ```shell
 [5.40833 million req/sec] for URL: /service/candy/lollipop
 [5.58036 million req/sec] for URL: /service/candy/gum
@@ -146,6 +151,7 @@ Checksum: 80000000
 [6.45578 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
+</details>
 
 ## Fast Router
 The fast router is a wrapper around [HttpRouter](https://github.com/killvxk/HttpRouter).
@@ -163,7 +169,9 @@ of parameter values instead of `std::unordered_map`.
 ### Performance
 Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
 
-#### Mac OS X Apple Clang
+<details>
+  <summary><strong>Mac OS X Apple Clang</strong></summary>
+
 ```shell
 [7.8125 million req/sec] for URL: /service/candy/lollipop
 [15.4083 million req/sec] for URL: /service/candy/gum
@@ -174,8 +182,11 @@ Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
 [20.9205 million req/sec] for URL: /some_file.html
 [21.8341 million req/sec] for URL: /another_file.jpeg
 ```
+</details>
 
-#### Linux GCC 11.2
+<details>
+  <summary><strong>Linux GCC 11.2</strong></summary>
+
 ```shell
 [16.2338 million req/sec] for URL: /service/candy/lollipop
 [15.3139 million req/sec] for URL: /service/candy/gum
@@ -186,3 +197,4 @@ Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
 [21.9298 million req/sec] for URL: /some_file.html
 [22.2717 million req/sec] for URL: /another_file.jpe
 ```
+</details>
