@@ -46,6 +46,7 @@ namespace spt::http::router
 
     /**
      * Add the specified path for the specified HTTP method/verb to the router.
+     * This is not thread safe.
      *
      * @param method The HTTP method/verb for which the route is configured.
      * @param path The path to configure.  Either a static (no parameters in curly braces) or parametrised value.

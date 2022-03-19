@@ -36,6 +36,9 @@ sudo make install
 The **HttpRouter<Response>** class exposes two methods that are used to set up
 and perform routing:
 * **add** - Use to add paths or parametrised paths to the router.
+  * This is *not* thread safe.  Configuring routing should generally not need
+  thread safety, but if you need to ensure safety, use mutexes or similar
+  concepts to prevent concurrent access to router.
 * **route** - When a client request is received, delegate to the router to handle
   the request.
 
