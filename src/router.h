@@ -32,7 +32,17 @@ namespace spt::http::router
     {
       Path( std::string&& p, std::size_t h ) : path{ std::move( p ) },
         parts{ util::split<std::string>( path ) },
-        handler{ h } {}
+        handler{ h }
+      {
+        using namespace std::string_literals;
+        for ( auto&& part : parts )
+        {
+          if ( ( part.starts_with( '{' ) && !part.ends_with( '}' ) ) || part.starts_with( ':' ) )
+          {
+            throw InvalidParameterError{ "Path "s + path + " has invalid parameter "s + part };
+          }
+        }
+      }
 
       ~Path() = default;
       Path(Path&&) noexcept = default;
@@ -61,6 +71,9 @@ namespace spt::http::router
      * @return A reference to the router for chaining.
      * @throws DuplicateRouteError If the specified `path` has been configured
      *   for the specified `method` already.
+     * @throws InvalidParameterError If the specified `path` has parameters and
+     *   use the `:<parameter>` form, or if the trailing `}` in the
+     *   `{parameter}` is missing.
      */
     HttpRouter& add( std::string_view method, std::string_view path, Handler&& handler )
     {

@@ -18,4 +18,14 @@ namespace spt::http::router
   private:
     std::string msg;
   };
+
+  struct InvalidParameterError : std::exception
+  {
+    InvalidParameterError( std::string&& msg ) : std::exception(), msg{ std::move( msg ) } {}
+
+    const char* what() const noexcept override { return msg.c_str(); }
+
+  private:
+    std::string msg;
+  };
 }
