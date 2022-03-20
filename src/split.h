@@ -11,6 +11,9 @@
 namespace spt::util
 {
   template <typename String>
+#if __GNUC__ > 10
+constexpr
+#endif
   std::vector<String> split( std::string_view csv,
       std::size_t sizehint = 8, std::string_view delims = "/" )
   {

@@ -2,7 +2,11 @@
 // Created by Rakesh on 16/03/2022.
 //
 
+#if __GNUC__ > 10
+#include <catch2/catch.hpp>
+#else
 #include <catch2/catch_test_macros.hpp>
+#endif
 #include "../src/fastrouter.h"
 
 using namespace std::string_literals;
