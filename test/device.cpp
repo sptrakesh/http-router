@@ -1,6 +1,8 @@
 //
 // Created by Rakesh on 16/03/2022.
 //
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 
 #if __GNUC__ > 10
 #include <catch2/catch.hpp>
