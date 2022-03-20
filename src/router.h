@@ -10,6 +10,12 @@
 #include <optional>
 #include <unordered_map>
 
+#ifdef HAS_BOOST
+#include <ostream>
+#include <boost/json/array.hpp>
+#include <boost/json/serialize.hpp>
+#endif
+
 namespace spt::http::router
 {
   /**
@@ -86,6 +92,41 @@ namespace spt::http::router
 
       return resp;
     }
+
+#ifdef HAS_BOOST
+    /**
+     * Output the configured routes as a JSON structure.
+     * @return JSON representation with some additional metadata about the configured routes.
+     */
+    [[nodiscard]] boost::json::value json() const
+    {
+      auto arr = boost::json::array{};
+      int s = 0;
+      int d = 0;
+      for ( auto&& p : paths )
+      {
+        arr.template emplace_back( p.path );
+        if ( p.path.find( "{" ) != std::string::npos ) ++d;
+        else ++s;
+      }
+
+      auto obj = boost::json::object{};
+      obj["paths"] = arr;
+      obj["total"] = paths.size();
+      obj["static"] = s;
+      obj["dynamic"] = d;
+      return obj;
+    }
+
+    /**
+     * Output a string representation of the configured routes.
+     * @return String representation of the routes.
+     */
+    [[nodiscard]] std::string str() const
+    {
+      return boost::json::serialize( json() );
+    }
+#endif
 
     HttpRouter()
     {
@@ -179,4 +220,13 @@ namespace spt::http::router
     std::vector<Path> paths;
     std::mutex mutex;
   };
+
+#ifdef HAS_BOOST
+  template <typename UserData, typename Response>
+  std::ostream& operator<<( std::ostream& os, const HttpRouter<UserData, Response>& router )
+  {
+    os << router.json();
+    return os;
+  }
+#endif
 }

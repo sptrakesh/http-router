@@ -33,8 +33,8 @@ sudo make install
 ```
 
 ## Use
-The **HttpRouter<UserData, Response>** class exposes two methods that are used to set up
-and perform routing:
+The **HttpRouter<UserData, Response>** class exposes two primary methods that
+are used to set up and perform routing:
 * **add** - Use to add paths or parametrised paths to the router.
   * This is thread safe.  Configuring routing should generally not need
   thread safety, but just in case route additions are set up lazily in a
@@ -42,12 +42,23 @@ and perform routing:
   * Duplicate routes will throw a [`spt::http::router::DuplicateRouteError`](src/error.h) exception.
 * **route** - When a client request is received, delegate to the router to handle
   the request.
+* If Boost has been found a few additional utility methods are exposed.
+  * **json** - Output the configured routes and some additional metadata as a JSON structure. 
+  * **str** - Output the configured routes and some additional metadata as a string.
+  This is just the JSON representation serialised.
+  * **operator<<** - Appends the string representation to the output stream.
 
 The following shows sample use of the router.  See [unit test](test/basic.cpp)
 for more samples.
 
+<details>
+  <summary><strong>Sample code</strong></summary>
+
 ```c++
 #include <router/router.h>
+// If your project uses boost and has not already included boost::json sources
+#include <boost/json/src.hpp>
+
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
@@ -58,44 +69,85 @@ int main()
     // pass whatever you need as user data
   } userData;
   
+  const auto method = "GET"sv;
   spt::http::router::HttpRouter<const UserData&, bool> r;
-  r.add( "GET"sv, "/service/candy/{kind}"sv, [](const UserData&, auto params)
-  {
-    assert( params.size() == 1 );
-    assert( params.contains( "kind"s ) );
-    return true;
-  } );
-  
-  r.add( "GET"sv, "/service/shutdown"sv, [](const UserData&, auto params)
-  {
-    assert( params.empty() );
-    return true;
-  } );
-
-  r.add( "GET"sv, "/"sv, [](const UserData&, auto params)
-  {
-    assert( params.empty() );
-    return true;
-  } );
-
-  r.add( "GET"sv, "/{filename}/type/{mime}"sv, [](const UserData&, auto params)
-  {
-    assert( params.size() == 2 );
-    assert( params.contains( "filename" ) );
-    assert( params.contains( "mime" ) );
-    return true;
-  } );
+  r.add( "POST"sv, "/device/sensor/"sv, []( const UserData&, auto args )
+    {
+      assert( args.empty() );
+      return true;
+    } );
+    r.add( method, "/device/sensor/"sv, []( const UserData&, auto args )
+    {
+      assert( args.empty() );
+      return true;
+    } );
+    r.add( "PUT"sv, "/device/sensor/id/{id}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "id"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/id/{id}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "id"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/identifier/{identifier}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "identifier"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/customer/code/{code}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "code"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/facility/id/{id}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "id"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/count/references/{id}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "id"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/history/summary/{id}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "id"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/history/document/{id}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 1 );
+      assert( args.contains( "id"sv ) );
+      return true;
+    } );
+    r.add( method, "/device/sensor/{property}/between/{start}/{end}"sv, []( const UserData&, auto args )
+    {
+      assert( args.size() == 3 );
+      assert( args.contains( "property"sv ) );
+      assert( args.contains( "start"sv ) );
+      assert( args.contains( "end"sv ) );
+      return true;
+    } );
   
   std::vector<std::string> urls = 
       {
-        "/service/candy/lollipop"s, // kind=lollipop
-        "/service/candy/gum"s, // kind=gum
-        "/service/candy/seg_råtta"s, // kind=seg_råtta
-        "/service/candy/lakrits"s, // kind=lakrits
-        "/service/shutdown"s, // static route
-        "/"s, // static route
-        "/some_file.html/type/html"s, // filename=some_file.html; mime=html
-        "/another_file.jpeg/type/jpg"s // filename=another_file.jpeg; mime=jpg
+        "/device/sensor/"s,
+        "/device/sensor/id/6230f3069e7c9be9ff4b78a1"s, // id=6230f3069e7c9be9ff4b78a1
+        "/device/sensor/identifier/Integration Test Identifier"s, // identifier=Integration Test Identifier
+        "/device/sensor/customer/code/int-test"s, // code=int-test
+        "/device/sensor/history/summary/6230f3069e7c9be9ff4b78a1"s, // id=6230f3069e7c9be9ff4b78a1
+        "/device/sensor/history/document/6230f3069e7c9be9ff4b78a1"s, // id=6230f3069e7c9be9ff4b78a1
+        "/device/sensor/count/references/6230f3069e7c9be9ff4b78a1"s, // id=6230f3069e7c9be9ff4b78a1
+        "/device/sensor/created/between/2022-03-14T20:11:50.620Z/2022-03-16T20:11:50.620Z"s, // property=created, start=2022-03-14T20:11:50.620Z, end=2022-03-16T20:11:50.620Z
       };
   for ( auto&& url : urls )
   {
@@ -103,8 +155,27 @@ int main()
     assert( resp );
     assert( *resp );
   }
+  
+  auto resp = r.route( "PUT", "/device/sensor/"sv );
+  assert( resp );
+  assert( !*resp ); // PUT not configured
+  
+  resp = r.route( "POST", "/device/sensor/history/document/{id}"sv );
+  assert( resp );
+  assert( !*resp ); // POST not configured
+  
+  try
+  {
+    r.add( "PUT"sv, "/device/sensor/id/{id}"sv, []( const UserData&, auto args ) { return true; } );
+  }
+  catch ( const spt::http::router::DuplicateRouteError& e )
+  {
+    // Will be caught as we registered the same route earlier
+    std::cerr << e.what() << '\n';
+  }
 }
 ```
+</details>
 
 The `route` method returns a `std::optional<Response>`.  If no configured path
 matches, returns `std::nullopt`.  Otherwise, returns the response from the callback
@@ -125,7 +196,7 @@ The Linux numbers were from a VM running on Parallels on Mac, bare metal
 numbers may be higher.
 
 <details>
-  <summary><strong>Mac OS X Apple Clang</strong></summary>
+  <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
 ```shell
 [2.46063 million req/sec] for URL: /service/candy/lollipop
@@ -173,7 +244,7 @@ of parameter values instead of `std::unordered_map`.
 Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
 
 <details>
-  <summary><strong>Mac OS X Apple Clang</strong></summary>
+  <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
 ```shell
 [7.8125 million req/sec] for URL: /service/candy/lollipop

@@ -28,6 +28,15 @@ IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX /opt/spt)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
+find_package(Boost)
+if (Boost_FOUND)
+  add_definitions(-DHAS_BOOST)
+  message("Boost found, enabling extra features")
+  include_directories(
+    ${Boost_INCLUDE_DIR}
+  )
+endif()
+
 add_subdirectory(src)
 
 if (BUILD_TESTING)
