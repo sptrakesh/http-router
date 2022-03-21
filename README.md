@@ -196,8 +196,8 @@ a sorted `std::vector`, and searched for using binary search.
 ### Benchmark
 Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are in the following sections.
 These were by computing the average time to route each URI path 10,000,000 times.
-The Linux numbers were from a VM running on Parallels on Mac, bare metal
-numbers may be higher.
+The Linux numbers were from a VM running on Parallels on a Mac Book Pro 2019 model
+(limited to 6 of 16 available cores), bare metal numbers may be higher.
 
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
