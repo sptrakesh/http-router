@@ -248,6 +248,18 @@ Total urls routed: 260000000 in 22 seconds.
 ```
 </details>
 
+<details>
+  <summary><strong>Linux GCC 11.2</strong></summary>
+
+```shell
+Single thread - [4.01886 million req/sec]
+Total urls routed: 260000000 in 64 seconds.
+
+10 threads - [18.0443 million req/sec]
+Total urls routed: 260000000 in 14 seconds.
+```
+</details>
+
 ## Fast Router
 The fast router is a wrapper around [HttpRouter](https://github.com/killvxk/HttpRouter).
 The original implementation has been slightly modified and updated.  There are
