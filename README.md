@@ -193,6 +193,7 @@ as a base image when building your target image.
 Router is not optimised for high performance.  Configured paths are stored in
 a sorted `std::vector`, and searched for using binary search.
 
+### Benchmark
 Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are in the following sections.
 These were by computing the average time to route each URI path 10,000,000 times.
 The Linux numbers were from a VM running on Parallels on Mac, bare metal
@@ -227,6 +228,23 @@ Checksum: 80000000
 [6.64452 million req/sec] for URL: /some_file.html
 [6.45578 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
+```
+</details>
+
+### Realistic Scenario
+A more realistic scenario was mocked up in [performance.cpp](test/performance.cpp)
+and tested via both a single thread and multiple threads.  The results of the test
+are shown below:
+
+<details>
+  <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
+
+```shell
+Single thread - [2.20586 million req/sec]
+Total urls routed: 260000000 in 117 seconds.
+
+10 threads - [11.5274 million req/sec]
+Total urls routed: 260000000 in 22 seconds.
 ```
 </details>
 
