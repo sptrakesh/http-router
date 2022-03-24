@@ -13,9 +13,6 @@ endif()
 # Find includes in the build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
@@ -41,6 +38,7 @@ add_subdirectory(src)
 
 if (BUILD_TESTING)
   enable_testing()
+  add_subdirectory(performance)
   add_subdirectory(test)
 endif()
 

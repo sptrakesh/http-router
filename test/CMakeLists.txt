@@ -16,6 +16,9 @@ endif()
 
 FetchContent_MakeAvailable(Catch2)
 
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 file(GLOB_RECURSE test_SRCS *.cpp *.h)
 if(UNIX AND NOT APPLE)
   add_executable(unitTest ${test_SRCS} main.cpp)

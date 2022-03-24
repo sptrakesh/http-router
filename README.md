@@ -194,7 +194,7 @@ Router is not optimised for high performance.  Configured paths are stored in
 a sorted `std::vector`, and searched for using binary search.
 
 ### Benchmark
-Benchmark numbers from [benchmark.cpp](test/benchmark.cpp) are in the following sections.
+Benchmark numbers from [benchmark.cpp](performance/benchmark.cpp) are in the following sections.
 These were by computing the average time to route each URI path 10,000,000 times.
 The Linux numbers were from a VM running on Parallels on a Mac Book Pro 2019 model
 (limited to 6 of 16 available cores), bare metal numbers may be higher.
@@ -232,7 +232,7 @@ Checksum: 80000000
 </details>
 
 ### Realistic Scenario
-A more realistic scenario was mocked up in [performance.cpp](test/performance.cpp)
+A more realistic scenario was mocked up in [performance.cpp](performance/performance.cpp)
 and tested via both a single thread and multiple threads.  The results of the test
 are shown below:
 
@@ -274,7 +274,7 @@ specify parameters.  The handler callback function also returns a `std::vector`
 of parameter values instead of `std::unordered_map`.
 
 ### Performance
-Benchmark numbers from [benchmarkfast.cpp](test/benchmarkfast.cpp) are below:
+Benchmark numbers from [benchmarkfast.cpp](performance/benchmarkfast.cpp) are below:
 
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
