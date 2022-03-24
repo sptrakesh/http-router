@@ -30,7 +30,7 @@ namespace spt::http::router
   {
     struct Path
     {
-      Path( std::string&& p, std::size_t h ) : path{ std::move( p ) },
+      Path( std::string&& p, std::string&& m, std::size_t h ) : path{ std::move( p ) },
         parts{ util::split<std::string>( path ) },
         handler{ h }
       {
@@ -42,6 +42,8 @@ namespace spt::http::router
             throw InvalidParameterError{ "Path "s + path + " has invalid parameter "s + part };
           }
         }
+
+        methods.push_back( std::move( m ) );
       }
 
       ~Path() = default;
@@ -52,6 +54,7 @@ namespace spt::http::router
 
       std::string path;
       std::vector<std::string> parts;
+      std::vector<std::string> methods;
       std::size_t handler;
     };
 
@@ -118,7 +121,8 @@ namespace spt::http::router
       int d = 0;
       for ( auto&& p : paths )
       {
-        arr.template emplace_back( p.path );
+        auto path = boost::json::object{ { "path", p.path }, { "methods", p.methods } };
+        arr.template emplace_back( path );
         if ( p.path.find( "{" ) != std::string::npos ) ++d;
         else ++s;
       }
@@ -158,26 +162,32 @@ namespace spt::http::router
       using namespace std::string_literals;
       using namespace std::string_view_literals;
 
-      auto full = std::string{};
-      full.reserve( 1 + method.size() + path.size() );
-      full.append( "/" ).append( method ).append( path );
-
-      auto iter = std::lower_bound( std::cbegin( paths ), std::cend( paths ), full,
+      auto full = std::string{ path };
+      auto m = std::string{ method };
+      auto iter = std::lower_bound( std::begin( paths ), std::end( paths ), full,
           []( const Path& p, const std::string& pth )
           {
             return p.path < pth;
           } );
       if ( iter != std::cend( paths ) && full == iter->path )
       {
-        throw DuplicateRouteError{ "Duplicate path "s + std::string{ path } };
+        auto it = std::find( std::cbegin( iter->methods ),
+            std::cend( iter->methods ), m );
+        if ( it != std::cend( iter->methods ))
+        {
+          throw DuplicateRouteError{ "Duplicate path "s + std::string{ path } + " for method "s + m };
+        }
+        iter->methods.push_back( std::move( m ) );
       }
-
-      paths.template emplace_back( std::move( full ), handlers.size() );
-
-      std::sort( std::begin( paths ), std::end( paths ), []( const Path& p1, const Path& p2 )
+      else
       {
-        return p1.path < p2.path;
-      } );
+        paths.template emplace_back( std::move( full ), std::move( m ), handlers.size() );
+
+        std::sort( std::begin( paths ), std::end( paths ), []( const Path& p1, const Path& p2 )
+        {
+          return p1.path < p2.path;
+        } );
+      }
     }
 
     std::optional<Response> routeParameters( std::string_view method,
@@ -186,10 +196,8 @@ namespace spt::http::router
       using namespace std::string_view_literals;
       std::unordered_map<std::string_view, std::string_view> params{};
 
-      auto full = std::string{};
-      full.reserve( 1 + method.size() + path.size() );
-      full.append( "/" ).append( method ).append( path );
-
+      auto full = std::string{ path };
+      auto m = std::string{ method };
       auto iter = std::lower_bound( std::cbegin( paths ), std::cend( paths ), full,
           []( const Path& p, const std::string& pth )
           {
@@ -197,13 +205,20 @@ namespace spt::http::router
           } );
 
       if ( iter == std::cend( paths ) ) return std::nullopt;
-      if ( full == iter->path ) return handlers[iter->handler]( userData, std::move( params ) );
+      if ( full == iter->path )
+      {
+        auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
+        if ( it != std::cend( iter->methods ) ) return handlers[iter->handler]( userData, std::move( params ) );
+        return std::nullopt;
+      }
 
       const auto parts = util::split<std::string_view>( full );
       auto handler = -1;
       for ( ; iter != std::cend( paths ); ++iter )
       {
         if ( parts.size() != iter->parts.size() ) continue;
+        if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
+            it == std::cend( iter->methods ) ) continue;
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {
@@ -223,6 +238,7 @@ namespace spt::http::router
         }
 
         if ( handler != -1 ) break;
+        params.clear();
       }
 
       if ( handler == -1 ) return std::nullopt;

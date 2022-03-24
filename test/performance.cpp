@@ -17,6 +17,7 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
+#ifdef RUN_BENCHMARK
 SCENARIO( "Multi-threaded performance test with realistic number of routes" )
 {
   GIVEN( "A router with a reasonable number of routes" )
@@ -175,4 +176,4 @@ SCENARIO( "Multi-threaded performance test with realistic number of routes" )
     }
   }
 }
-
+#endif

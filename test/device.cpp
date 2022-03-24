@@ -8,6 +8,7 @@
 #include <catch2/catch.hpp>
 #else
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 #endif
 #include "boost.h"
 #include "../src/router.h"
@@ -263,6 +264,12 @@ SCENARIO( "Sensor device serialisation tests" )
       REQUIRE( args.contains( "id"sv ) );
       return true;
     } );
+    r.add( "DELETE"sv, "/device/sensor/id/{id}"sv, []( const UserData&, auto args )
+    {
+      REQUIRE( args.size() == 1 );
+      REQUIRE( args.contains( "id"sv ) );
+      return true;
+    } );
     r.add( method, "/device/sensor/identifier/{identifier}"sv, []( const UserData&, auto args )
     {
       REQUIRE( args.size() == 1 );
@@ -311,6 +318,7 @@ SCENARIO( "Sensor device serialisation tests" )
     WHEN( "Serialising to JSON" )
     {
       auto json = r.json();
+      std::cout << json << std::endl;
       REQUIRE( json.is_object() );
       auto obj = json.as_object();
       REQUIRE( obj.contains( "paths" ) );
@@ -320,7 +328,7 @@ SCENARIO( "Sensor device serialisation tests" )
       REQUIRE( obj["paths"].as_array().size() == obj["total"].as_uint64() );
       REQUIRE( obj.contains( "static" ) );
       REQUIRE( obj["static"].is_int64() );
-      REQUIRE( obj["static"].as_int64() == 2 );
+      REQUIRE( obj["static"].as_int64() == 1 );
       REQUIRE( obj.contains( "dynamic" ) );
       REQUIRE( obj["dynamic"].is_int64() );
       REQUIRE( obj["dynamic"].as_int64() == ( static_cast<int64_t>( obj["total"].as_uint64() ) - obj["static"].as_int64() ) );

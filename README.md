@@ -203,14 +203,14 @@ The Linux numbers were from a VM running on Parallels on a Mac Book Pro 2019 mod
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
 ```shell
-[2.46063 million req/sec] for URL: /service/candy/lollipop
-[3.11333 million req/sec] for URL: /service/candy/gum
-[2.81373 million req/sec] for URL: /service/candy/seg_råtta
-[2.84495 million req/sec] for URL: /service/candy/lakrits
-[16.9779 million req/sec] for URL: /service/shutdown
-[18.622 million req/sec] for URL: /
-[3.89864 million req/sec] for URL: /some_file.html
-[3.79075 million req/sec] for URL: /another_file.jpeg
+[3.36474 million req/sec] for URL: /service/candy/lollipop
+[4.22833 million req/sec] for URL: /service/candy/gum
+[3.4118 million req/sec] for URL: /service/candy/seg_råtta
+[4.16667 million req/sec] for URL: /service/candy/lakrits
+[30.581 million req/sec] for URL: /service/shutdown
+[42.3729 million req/sec] for URL: /
+[4.79616 million req/sec] for URL: /some_file.html
+[4.62535 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 </details>
@@ -240,11 +240,11 @@ are shown below:
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
 ```shell
-Single thread - [2.20586 million req/sec]
-Total urls routed: 260000000 in 117 seconds.
+Single thread - [2.3916 million req/sec]
+Total urls routed: 260000000 in 108 seconds.
 
-10 threads - [11.5274 million req/sec]
-Total urls routed: 260000000 in 22 seconds.
+10 threads - [12.3703 million req/sec]
+Total urls routed: 260000000 in 21 seconds.
 ```
 </details>
 
