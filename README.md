@@ -219,14 +219,14 @@ Checksum: 80000000
   <summary><strong>Linux GCC 11.2</strong></summary>
 
 ```shell
-[5.40833 million req/sec] for URL: /service/candy/lollipop
-[5.58036 million req/sec] for URL: /service/candy/gum
-[5.95593 million req/sec] for URL: /service/candy/seg_råtta
-[5.87889 million req/sec] for URL: /service/candy/lakrits
+[5.98802 million req/sec] for URL: /service/candy/lollipop
+[6.44745 million req/sec] for URL: /service/candy/gum
+[6.2461 million req/sec] for URL: /service/candy/seg_råtta
+[6.35324 million req/sec] for URL: /service/candy/lakrits
 [21.2314 million req/sec] for URL: /service/shutdown
-[22.1239 million req/sec] for URL: /
-[6.64452 million req/sec] for URL: /some_file.html
-[6.45578 million req/sec] for URL: /another_file.jpeg
+[28.5714 million req/sec] for URL: /
+[8.16993 million req/sec] for URL: /some_file.html
+[6.93963 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 </details>
@@ -252,10 +252,10 @@ Total urls routed: 260000000 in 21 seconds.
   <summary><strong>Linux GCC 11.2</strong></summary>
 
 ```shell
-Single thread - [4.01886 million req/sec]
+Single thread - [4.06155 million req/sec]
 Total urls routed: 260000000 in 64 seconds.
 
-10 threads - [18.0443 million req/sec]
+10 threads - [18.4738 million req/sec]
 Total urls routed: 260000000 in 14 seconds.
 ```
 </details>
