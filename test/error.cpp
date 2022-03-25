@@ -14,14 +14,14 @@ using namespace std::string_view_literals;
 
 SCENARIO( "HttpRouter errors test suite" )
 {
-  struct UserData {} userData;
+  struct Request {} request;
 
   GIVEN( "Router configured with path with multiple parameters" )
   {
-    spt::http::router::HttpRouter<const UserData&, bool> r;
+    spt::http::router::HttpRouter<const Request&, bool> r;
     std::string start;
     std::string end;
-    r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [&start, &end](const UserData&, auto args)
+    r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [&start, &end](const Request&, auto args)
     {
       REQUIRE( args.size() == 2 );
       REQUIRE( args.contains( "start"s ) );
@@ -36,38 +36,45 @@ SCENARIO( "HttpRouter errors test suite" )
       start = "2022-02-14T22:25:05.147Z"s;
       end = "2022-03-14T22:25:05.147Z"s;
       auto url = "/device/sensor/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
-      auto resp = r.route( "GET"s, url, userData );
+      auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
-      REQUIRE_FALSE( r.route( "DELETE"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "OPTIONS"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "POST"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "PUT"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "PATCH"s, url, userData ) );
+      REQUIRE_FALSE( r.route( "DELETE"s, url, request ) );
+      REQUIRE_FALSE( r.route( "OPTIONS"s, url, request ) );
+      REQUIRE_FALSE( r.route( "POST"s, url, request ) );
+      REQUIRE_FALSE( r.route( "PUT"s, url, request ) );
+      REQUIRE_FALSE( r.route( "PATCH"s, url, request ) );
 
       start = "2022-01-04T22:25:05.147Z"s;
       end = "2022-02-14T22:25:05.147Z"s;
       url = "/device/sensor/created/between/2022-01-04T22:25:05.147Z/2022-02-14T22:25:05.147Z"s;
-      REQUIRE( r.route( "GET"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "DELETE"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "OPTIONS"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "POST"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "PUT"s, url, userData ) );
-      REQUIRE_FALSE( r.route( "PATCH"s, url, userData ) );
+      REQUIRE( r.route( "GET"s, url, request ) );
+      REQUIRE_FALSE( r.route( "DELETE"s, url, request ) );
+      REQUIRE_FALSE( r.route( "OPTIONS"s, url, request ) );
+      REQUIRE_FALSE( r.route( "POST"s, url, request ) );
+      REQUIRE_FALSE( r.route( "PUT"s, url, request ) );
+      REQUIRE_FALSE( r.route( "PATCH"s, url, request ) );
+    }
+
+    AND_WHEN( "Making request with non-configured method" )
+    {
+      auto url = "/device/sensor/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
+      auto resp = r.route( "PUT"s, url, request );
+      REQUIRE_FALSE( resp );
     }
 
     AND_WHEN( "Checking non-matching paths" )
     {
       auto url = "/device/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
-      REQUIRE_FALSE( r.route( "GET"s, url, userData ) );
+      REQUIRE_FALSE( r.route( "GET"s, url, request ) );
 
       url = "/device/sensor/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
-      REQUIRE_FALSE( r.route( "GET"s, url, userData ) );
+      REQUIRE_FALSE( r.route( "GET"s, url, request ) );
     }
 
     AND_WHEN( "Registering duplicate route" )
     {
       REQUIRE_THROWS_AS(
-          r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [](const UserData&, auto&&) { return true; }),
+          r.add( "GET"sv, "/device/sensor/created/between/{start}/{end}"sv, [](const Request&, auto&&) { return true; }),
           spt::http::router::DuplicateRouteError
       );
     }
@@ -75,7 +82,7 @@ SCENARIO( "HttpRouter errors test suite" )
     AND_WHEN( "Registering route with :param form" )
     {
       REQUIRE_THROWS_AS(
-          r.add( "GET"sv, "/device/sensor/created/between/:start/{end}"sv, [](const UserData&, auto&&) { return true; }),
+          r.add( "GET"sv, "/device/sensor/created/between/:start/{end}"sv, [](const Request&, auto&&) { return true; }),
           spt::http::router::InvalidParameterError
       );
     }
@@ -83,7 +90,7 @@ SCENARIO( "HttpRouter errors test suite" )
     AND_WHEN( "Registering route without ending }" )
     {
       REQUIRE_THROWS_AS(
-          r.add( "GET"sv, "/device/sensor/created/between/{start/{end}"sv, [](const UserData&, auto&&) { return true; }),
+          r.add( "GET"sv, "/device/sensor/created/between/{start/{end}"sv, [](const Request&, auto&&) { return true; }),
           spt::http::router::InvalidParameterError
       );
     }

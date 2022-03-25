@@ -18,9 +18,9 @@ SCENARIO( "Cable routes" )
   GIVEN( "Router configured for Cable API endpoints" )
   {
     const auto method = "GET"s;
-    struct UserData {} userData;
-    spt::http::router::HttpRouter<const UserData&, bool> r;
-    r.add( method, "/cable/installed/{type}/between/{start}/{end}", []( const UserData&, auto args )
+    struct Request {} request;
+    spt::http::router::HttpRouter<const Request&, bool> r;
+    r.add( method, "/cable/installed/{type}/between/{start}/{end}", []( const Request&, auto args )
     {
       REQUIRE( args.size() == 3 );
       REQUIRE( args.contains( "type"sv ) );
@@ -31,7 +31,7 @@ SCENARIO( "Cable routes" )
       REQUIRE( args["end"sv] == "2022-03-17T22:14:42.692Z"sv );
       return true;
     } );
-    r.add( method, "/cable/installed/cut/sheet/id/{id}/", []( const UserData&, auto args )
+    r.add( method, "/cable/installed/cut/sheet/id/{id}/", []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
@@ -42,7 +42,7 @@ SCENARIO( "Cable routes" )
     WHEN( "Testing /cable/installed/cut/sheet/id/62326132e7a2e020c6652e38" )
     {
       auto url = "/cable/installed/cut/sheet/id/62326132e7a2e020c6652e38"s;
-      auto resp = r.route( method, url, userData );
+      auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
     }
@@ -50,7 +50,7 @@ SCENARIO( "Cable routes" )
     AND_WHEN( "Testing /cable/installed/created/between/2022-03-15T22:14:42.692Z/2022-03-17T22:14:42.692Z" )
     {
       auto url = "/cable/installed/created/between/2022-03-15T22:14:42.692Z/2022-03-17T22:14:42.692Z"s;
-      auto resp = r.route( method, url, userData );
+      auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
     }
@@ -62,9 +62,9 @@ SCENARIO( "Cable router fast" )
   GIVEN( "Router configured for Cable API endpoints" )
   {
     const auto method = "GET"s;
-    struct UserData {} userData;
-    spt::http::router::FastRouter<const UserData&, bool> r;
-    r.add( method, "/cable/installed/:type/between/:start/:end", []( const UserData&, auto args )
+    struct Request {} request;
+    spt::http::router::FastRouter<const Request&, bool> r;
+    r.add( method, "/cable/installed/:type/between/:start/:end", []( const Request&, auto args )
     {
       REQUIRE( args.size() == 3 );
       REQUIRE( args[0].sv() == "created"sv );
@@ -72,7 +72,7 @@ SCENARIO( "Cable router fast" )
       REQUIRE( args[2].sv() == "2022-03-17T22:14:42.692Z"sv );
       return true;
     } );
-    r.add( method, "/cable/installed/cut/sheet/id/:id/", []( const UserData&, auto args )
+    r.add( method, "/cable/installed/cut/sheet/id/:id/", []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args[0].sv() == "62326132e7a2e020c6652e38"sv );
@@ -82,7 +82,7 @@ SCENARIO( "Cable router fast" )
     WHEN( "Testing /cable/installed/cut/sheet/id/62326132e7a2e020c6652e38" )
     {
       auto url = "/cable/installed/cut/sheet/id/62326132e7a2e020c6652e38"s;
-      auto resp = r.route( method, url, userData );
+      auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
     }
@@ -90,7 +90,7 @@ SCENARIO( "Cable router fast" )
     AND_WHEN( "Testing /cable/installed/created/between/2022-03-15T22:14:42.692Z/2022-03-17T22:14:42.692Z" )
     {
       auto url = "/cable/installed/created/between/2022-03-15T22:14:42.692Z/2022-03-17T22:14:42.692Z"s;
-      auto resp = r.route( method, url, userData );
+      auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
     }

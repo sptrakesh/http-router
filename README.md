@@ -13,10 +13,10 @@ on the type of framework being used.  We have used it mainly with
 * Parameters (slugs) are represented using curly brace enclosed name `{param}`.
   * Curly brace form was chosen in favour of `:param` for sorting purpose.
   * Sorting with `{` implies use of non-ascii characters in path will have inconsistent behaviour.
-* Templated on the **Response** type and an input **UserData**.
+* Templated on the **Response** type and an input **Request**.
 * Function based routing.  Successful matches are *routed* to the specified
   *handler* callback function.
-  * Callback function has signature `Response( UserData, std::unordered_map<std::string_view, std::string_view>&& )` 
+  * Callback function has signature `Response( Request, std::unordered_map<std::string_view, std::string_view>&& )` 
   * The `std::unordered_map` will hold the parsed *parameter->value* pairs.
 
 ## Install
@@ -33,8 +33,11 @@ sudo make install
 ```
 
 ## Use
-The **HttpRouter<UserData, Response>** class exposes two primary methods that
+The **HttpRouter<Request, Response>** class exposes two primary methods that
 are used to set up and perform routing:
+* **CTOR** - Create an instance with the optional handlers to handle standard
+  scenarios such as *Not Found (404)*, *Method Not Allowed (405)*, and
+  *Internal Server Error (500)*. 
 * **add** - Use to add paths or parametrised paths to the router.
   * This is thread safe.  Configuring routing should generally not need
   thread safety, but just in case route additions are set up lazily in a
@@ -45,14 +48,23 @@ are used to set up and perform routing:
     * This is thrown if a parameter does not end with the `}` character.
 * **route** - When a client request is received, delegate to the router to handle
   the request.
+  * If a *notFound* handler was specified when creating the router (first optional
+    constructor parameter), and the input request *path* was not found, the
+    handler will be invoked.
+  * If a *methodNotFound* handler was specified when creating the router (second
+    optional constructor parameter), and the input request *method* was not
+    configured for the specified *path*, the handler will be invoked.
+  * If a *errorHandler* handler was specified when creating the router (third
+    optional constructor parameter), and an exception was thrown by the configured
+    handler function for the *method:path*, the handler will be invoked.
 * If Boost has been found a few additional utility methods are exposed.
   * **json** - Output the configured routes and some additional metadata as a JSON structure. 
   * **str** - Output the configured routes and some additional metadata as a string.
   This is just the JSON representation serialised.
   * **operator<<** - Appends the string representation to the output stream.
 
-The following shows sample use of the router.  See [unit test](test/basic.cpp)
-for more samples.
+The following shows sample use of the router.  See [basic](test/basic.cpp) test
+and other unit tests for more samples.
 
 <details>
   <summary><strong>Sample code</strong></summary>
@@ -67,72 +79,72 @@ using namespace std::string_view_literals;
 
 int main()
 {
-  struct UserData
+  struct Request
   {
     // pass whatever you need as user data
-  } userData;
+  } request;
   
   const auto method = "GET"sv;
-  spt::http::router::HttpRouter<const UserData&, bool> r;
-  r.add( "POST"sv, "/device/sensor/"sv, []( const UserData&, auto args )
+  spt::http::router::HttpRouter<const Request&, bool> r;
+  r.add( "POST"sv, "/device/sensor/"sv, []( const Request&, auto args )
     {
       assert( args.empty() );
       return true;
     } );
-    r.add( method, "/device/sensor/"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/"sv, []( const Request&, auto args )
     {
       assert( args.empty() );
       return true;
     } );
-    r.add( "PUT"sv, "/device/sensor/id/{id}"sv, []( const UserData&, auto args )
+    r.add( "PUT"sv, "/device/sensor/id/{id}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "id"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/id/{id}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/id/{id}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "id"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/identifier/{identifier}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/identifier/{identifier}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "identifier"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/customer/code/{code}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/customer/code/{code}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "code"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/facility/id/{id}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/facility/id/{id}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "id"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/count/references/{id}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/count/references/{id}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "id"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/history/summary/{id}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/history/summary/{id}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "id"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/history/document/{id}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/history/document/{id}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 1 );
       assert( args.contains( "id"sv ) );
       return true;
     } );
-    r.add( method, "/device/sensor/{property}/between/{start}/{end}"sv, []( const UserData&, auto args )
+    r.add( method, "/device/sensor/{property}/between/{start}/{end}"sv, []( const Request&, auto args )
     {
       assert( args.size() == 3 );
       assert( args.contains( "property"sv ) );
@@ -154,7 +166,7 @@ int main()
       };
   for ( auto&& url : urls )
   {
-    auto resp = r.route( "GET"s, url, userData );
+    auto resp = r.route( "GET"s, url, request );
     assert( resp );
     assert( *resp );
   }
@@ -169,7 +181,7 @@ int main()
   
   try
   {
-    r.add( "PUT"sv, "/device/sensor/id/{id}"sv, []( const UserData&, auto args ) { return true; } );
+    r.add( "PUT"sv, "/device/sensor/id/{id}"sv, []( const Request&, auto args ) { return true; } );
   }
   catch ( const spt::http::router::DuplicateRouteError& e )
   {

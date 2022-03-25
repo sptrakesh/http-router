@@ -9,6 +9,10 @@
 #include <mutex>
 #include <optional>
 #include <unordered_map>
+#if __has_include("log/NanoLog.h")
+#include <log/NanoLog.h>
+#define HAS_LOGGER 1
+#endif
 
 #ifdef HAS_BOOST
 #include <ostream>
@@ -21,11 +25,11 @@ namespace spt::http::router
   /**
    * Simple path based HTTP request router.  Configured paths are stored in
    * a sorted vector, and request path matching is performed via binary search.
-   * @tparam UserData User defined structure with the context necessary for
+   * @tparam Request User defined structure with the request context necessary for
    *   the handler function.
    * @tparam Response The response from the handler function.
    */
-  template<typename UserData, typename Response>
+  template<typename Request, typename Response>
   class HttpRouter
   {
     struct Path
@@ -62,7 +66,7 @@ namespace spt::http::router
     /**
      * Request handler callback function.  Path parameters extracted are passed as an unordered_map.
      */
-    using Handler = std::function<Response( UserData, std::unordered_map<std::string_view, std::string_view>&& )>;
+    using Handler = std::function<Response( Request, std::unordered_map<std::string_view, std::string_view>&& )>;
 
     /**
      * Add the specified path for the specified HTTP method/verb to the router.
@@ -90,23 +94,38 @@ namespace spt::http::router
      * Attempt to route the request for specified path and method.
      * @param method The HTTP method/verb from the client.
      * @param path The request URI path.
-     * @param userData The custom data used by the handler callback function.
+     * @param request The custom data used by the handler callback function.
      * @param checkWithoutTrailingSlash If `true` and if the `path` ends with
      *   a trailing slash ('/'), attempt to find a match after trimming the
      *   trailing slash in case the original path does not match.
      * @return Returns std::nullopt if no configured route matches.
      */
     std::optional<Response> route( std::string_view method, std::string_view path,
-        UserData userData, bool checkWithoutTrailingSlash = false ) const
+        Request request, bool checkWithoutTrailingSlash = false ) const
     {
       if ( method.empty() || path.empty() ) return std::nullopt;
-      auto resp = routeParameters( method, path, userData );
-      if ( !resp && checkWithoutTrailingSlash && path.ends_with( '/' ) )
+      try
       {
-        return routeParameters( method, path.substr( 0, path.size() - 1 ), userData );
-      }
+        auto resp = routeParameters( method, path, request );
+        if ( !resp && checkWithoutTrailingSlash && path.ends_with( '/' ) )
+        {
+          return routeParameters( method, path.substr( 0, path.size() - 1 ), request );
+        }
 
-      return resp;
+        return resp;
+      }
+      catch ( const std::exception& e )
+      {
+        if ( errorHandler )
+        {
+#ifdef HAS_LOGGER
+          LOG_WARN << "Error handling " << method << " request to " << path <<
+            ". " << e.what();
+#endif
+          return (*errorHandler)( request, {} );
+        }
+        throw;
+      }
     }
 
 #ifdef HAS_BOOST
@@ -145,7 +164,17 @@ namespace spt::http::router
     }
 #endif
 
-    HttpRouter()
+    /**
+     * Create a new instance of the router.
+     * @param error404 Optional handler function to handle path not found condition.
+     * @param error405  Optional handler function to handle path not configured for method condition.
+     * @param error500 Optional handler function to handle exception caught while despatching the request to handler.
+     */
+    HttpRouter( std::optional<Handler>&& error404 = std::nullopt,
+        std::optional<Handler>&& error405 = std::nullopt,
+        std::optional<Handler>&& error500 = std::nullopt ) :
+        notFound{ std::move( error404 ) }, methodNotAllowed{ std::move( error405 ) },
+        errorHandler{ std::move( error500 ) }
     {
       handlers.reserve( 32 );
       paths.reserve( 32 );
@@ -191,7 +220,7 @@ namespace spt::http::router
     }
 
     std::optional<Response> routeParameters( std::string_view method,
-        std::string_view path, UserData userData ) const
+        std::string_view path, Request request ) const
     {
       using namespace std::string_view_literals;
       std::unordered_map<std::string_view, std::string_view> params{};
@@ -208,7 +237,11 @@ namespace spt::http::router
       if ( full == iter->path )
       {
         auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
-        if ( it != std::cend( iter->methods ) ) return handlers[iter->handler]( userData, std::move( params ) );
+        if ( it != std::cend( iter->methods ) ) return handlers[iter->handler]( request, std::move( params ) );
+#ifdef HAS_LOGGER
+        LOG_INFO << "Method " << method << " not configured for path " << path;
+#endif
+        if ( methodNotAllowed ) return (*methodNotAllowed)( request, std::move( params ) );
         return std::nullopt;
       }
 
@@ -217,8 +250,6 @@ namespace spt::http::router
       for ( ; iter != std::cend( paths ); ++iter )
       {
         if ( parts.size() != iter->parts.size() ) continue;
-        if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
-            it == std::cend( iter->methods ) ) continue;
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {
@@ -227,6 +258,15 @@ namespace spt::http::router
           {
             if ( i == parts.size() - 1 )
             {
+              if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
+                  it == std::cend( iter->methods ) )
+              {
+#ifdef HAS_LOGGER
+                LOG_INFO << "Method " << method << " not configured for path " << path;
+#endif
+                if ( methodNotAllowed ) return (*methodNotAllowed)( request, std::move( params ) );
+                return std::nullopt;
+              }
               handler = iter->handler;
             }
             else continue;
@@ -235,24 +275,43 @@ namespace spt::http::router
 
           params[iview.substr( 1, iview.size() - 2 )] = parts[i];
           handler = iter->handler;
+          if ( i == parts.size() - 1 )
+          {
+            if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
+                it == std::cend( iter->methods ) )
+            {
+#ifdef HAS_LOGGER
+              LOG_INFO << "Method " << method << " not configured for path " << path;
+#endif
+              if ( methodNotAllowed ) return (*methodNotAllowed)( request, std::move( params ) );
+              return std::nullopt;
+            }
+          }
         }
 
         if ( handler != -1 ) break;
         params.clear();
       }
 
-      if ( handler == -1 ) return std::nullopt;
-      return handlers[handler]( userData, std::move( params ) );
+      if ( handler == -1 )
+      {
+        if ( notFound ) return (*notFound)( request, std::move( params ) );
+        return std::nullopt;
+      }
+      return handlers[handler]( request, std::move( params ) );
     }
 
     std::vector<Handler> handlers{};
     std::vector<Path> paths;
+    std::optional<Handler> notFound{ std::nullopt };
+    std::optional<Handler> methodNotAllowed{ std::nullopt };
+    std::optional<Handler> errorHandler{ std::nullopt };
     std::mutex mutex;
   };
 
 #ifdef HAS_BOOST
-  template <typename UserData, typename Response>
-  std::ostream& operator<<( std::ostream& os, const HttpRouter<UserData, Response>& router )
+  template <typename Request, typename Response>
+  std::ostream& operator<<( std::ostream& os, const HttpRouter<Request, Response>& router )
   {
     os << router.json();
     return os;
