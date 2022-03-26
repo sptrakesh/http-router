@@ -9,13 +9,15 @@
 #include <mutex>
 #include <optional>
 #include <unordered_map>
-#if __has_include("log/NanoLog.h")
-#include <log/NanoLog.h>
-#define HAS_LOGGER 1
+#if defined __has_include
+  #if __has_include(<log/NanoLog.h>)
+    #include <log/NanoLog.h>
+    #define HAS_LOGGER 1
+  #endif
 #endif
 
 #ifdef HAS_BOOST
-#include <ostream>
+  #include <ostream>
 #include <boost/json/array.hpp>
 #include <boost/json/serialize.hpp>
 #endif
@@ -35,19 +37,24 @@ namespace spt::http::router
     struct Path
     {
       Path( std::string&& p, std::string&& m, std::size_t h ) : path{ std::move( p ) },
-        parts{ util::split<std::string>( path ) },
-        handler{ h }
+        parts{ util::split<std::string>( path ) }
       {
         using namespace std::string_literals;
+
+        epath.reserve( path.size() );
         for ( auto&& part : parts )
         {
           if ( ( part.starts_with( '{' ) && !part.ends_with( '}' ) ) || part.starts_with( ':' ) )
           {
             throw InvalidParameterError{ "Path "s + path + " has invalid parameter "s + part };
           }
+
+          if ( part.starts_with( '{' ) ) epath.append( "/{}" );
+          else epath.append( "/" ).append( part );
         }
 
         methods.push_back( std::move( m ) );
+        handlers.push_back( h );
       }
 
       ~Path() = default;
@@ -56,10 +63,20 @@ namespace spt::http::router
       Path(const Path&) = delete;
       Path& operator=(const Path&) = delete;
 
+      std::optional<std::size_t> mindex( const std::string& method ) const
+      {
+        for ( std::size_t i = 0; i < methods.size(); ++i )
+        {
+          if ( methods[i] == method ) return i;
+        }
+        return std::nullopt;
+      }
+
       std::string path;
+      std::string epath;
       std::vector<std::string> parts;
       std::vector<std::string> methods;
-      std::size_t handler;
+      std::vector<std::size_t> handlers;
     };
 
   public:
@@ -200,23 +217,35 @@ namespace spt::http::router
           } );
       if ( iter != std::cend( paths ) && full == iter->path )
       {
-        auto it = std::find( std::cbegin( iter->methods ),
-            std::cend( iter->methods ), m );
-        if ( it != std::cend( iter->methods ))
+        auto midx = iter->mindex( m );
+        if ( midx )
         {
           throw DuplicateRouteError{ "Duplicate path "s + std::string{ path } + " for method "s + m };
         }
         iter->methods.push_back( std::move( m ) );
+        iter->handlers.push_back( handlers.size() );
+        return;
       }
-      else
-      {
-        paths.template emplace_back( std::move( full ), std::move( m ), handlers.size() );
 
-        std::sort( std::begin( paths ), std::end( paths ), []( const Path& p1, const Path& p2 )
+      auto ps = Path{ std::move( full ), std::move( m ), handlers.size() };
+      for ( auto&& p : paths )
+      {
+        if ( p.epath == ps.epath )
         {
-          return p1.path < p2.path;
-        } );
+          if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), ps.methods[0] );
+              it != std::cend( iter->methods ) )
+          {
+            throw DuplicateRouteError{ "Duplicate path "s + ps.path + " clashes with "s + p.path };
+          }
+        }
       }
+
+      paths.push_back( std::move( ps ) );
+
+      std::sort( std::begin( paths ), std::end( paths ), []( const Path& p1, const Path& p2 )
+      {
+        return p1.path < p2.path;
+      } );
     }
 
     std::optional<Response> routeParameters( std::string_view method,
@@ -236,8 +265,8 @@ namespace spt::http::router
       if ( iter == std::cend( paths ) ) return std::nullopt;
       if ( full == iter->path )
       {
-        auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
-        if ( it != std::cend( iter->methods ) ) return handlers[iter->handler]( request, std::move( params ) );
+        auto midx = iter->mindex( m );
+        if ( midx ) return handlers[iter->handlers[*midx]]( request, std::move( params ) );
 #ifdef HAS_LOGGER
         LOG_INFO << "Method " << method << " not configured for path " << path;
 #endif
@@ -250,6 +279,7 @@ namespace spt::http::router
       for ( ; iter != std::cend( paths ); ++iter )
       {
         if ( parts.size() != iter->parts.size() ) continue;
+        auto midx = iter->mindex( m );
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {
@@ -258,8 +288,8 @@ namespace spt::http::router
           {
             if ( i == parts.size() - 1 )
             {
-              if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
-                  it == std::cend( iter->methods ) )
+              if ( midx ) handler = iter->handlers[*midx];
+              else
               {
 #ifdef HAS_LOGGER
                 LOG_INFO << "Method " << method << " not configured for path " << path;
@@ -267,18 +297,16 @@ namespace spt::http::router
                 if ( methodNotAllowed ) return (*methodNotAllowed)( request, std::move( params ) );
                 return std::nullopt;
               }
-              handler = iter->handler;
             }
             else continue;
           }
           if ( iview[0] != '{' ) break;
 
           params[iview.substr( 1, iview.size() - 2 )] = parts[i];
-          handler = iter->handler;
           if ( i == parts.size() - 1 )
           {
-            if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), m );
-                it == std::cend( iter->methods ) )
+            if ( midx ) handler = iter->handlers[*midx];
+            else
             {
 #ifdef HAS_LOGGER
               LOG_INFO << "Method " << method << " not configured for path " << path;

@@ -94,6 +94,14 @@ SCENARIO( "HttpRouter errors test suite" )
           spt::http::router::InvalidParameterError
       );
     }
+
+    AND_WHEN( "Registering a route that only differs in parameter name" )
+    {
+      REQUIRE_THROWS_AS(
+          r.add( "GET"sv, "/device/sensor/created/between/{end}/{start}"sv, [](const Request&, auto&&) { return true; }),
+          spt::http::router::DuplicateRouteError
+      );
+    }
   }
 }
 
