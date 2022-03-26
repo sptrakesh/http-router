@@ -36,8 +36,8 @@ namespace spt::http::router
   {
     struct Path
     {
-      Path( std::string&& p, std::string&& m, std::size_t h ) : path{ std::move( p ) },
-        parts{ util::split<std::string>( path ) }
+      Path( std::string&& p, std::string&& m, std::size_t h, std::string&& r = {} ) :
+        path{ std::move( p ) }, ref{ std::move( r ) }, parts{ util::split<std::string>( path ) }
       {
         using namespace std::string_literals;
 
@@ -63,17 +63,16 @@ namespace spt::http::router
       Path(const Path&) = delete;
       Path& operator=(const Path&) = delete;
 
-      std::optional<std::size_t> mindex( const std::string& method ) const
+      std::optional<std::size_t> indexOf( const std::string& method ) const
       {
-        for ( std::size_t i = 0; i < methods.size(); ++i )
-        {
-          if ( methods[i] == method ) return i;
-        }
-        return std::nullopt;
+        auto it = std::find( std::cbegin( methods ), std::cend( methods ), method );
+        if ( it == std::cend( methods ) ) return std::nullopt;
+        return std::distance( std::cbegin( methods ), it );
       }
 
       std::string path;
       std::string epath;
+      std::string ref;
       std::vector<std::string> parts;
       std::vector<std::string> methods;
       std::vector<std::size_t> handlers;
@@ -92,6 +91,8 @@ namespace spt::http::router
      * @param method The HTTP method/verb for which the route is configured.
      * @param path The path to configure.  Either a static (no parameters in curly braces) or parametrised value.
      * @param handler The callback function to invoke if a request path matches.
+     * @param ref Optional reference to associate with the path when outputting
+     *   the YAML that could be used in developing the OpenAPI Specification for the API.
      * @return A reference to the router for chaining.
      * @throws DuplicateRouteError If the specified `path` has been configured
      *   for the specified `method` already.
@@ -99,10 +100,11 @@ namespace spt::http::router
      *   use the `:<parameter>` form, or if the trailing `}` in the
      *   `{parameter}` is missing.
      */
-    HttpRouter& add( std::string_view method, std::string_view path, Handler&& handler )
+    HttpRouter& add( std::string_view method, std::string_view path,
+        Handler&& handler, std::string_view ref = {} )
     {
       auto lock = std::scoped_lock<std::mutex>{ mutex };
-      addParameter( method, path );
+      addParameter( method, path, ref );
       handlers.push_back( std::move( handler ) );
       return *this;
     }
@@ -181,6 +183,19 @@ namespace spt::http::router
     }
 #endif
 
+    [[nodiscard]] std::string yaml() const
+    {
+      std::string out;
+      out.reserve( 1024 );
+      out.append( "paths:\n" );
+      for ( auto&& path : paths )
+      {
+        out.append( "  " ).append( path.path ).append( ":\n" ).
+          append( "    $ref: " ).append( "\"" ).append( path.ref ).append( "\"\n" );
+      }
+      return out;
+    }
+
     /**
      * Create a new instance of the router.
      * @param error404 Optional handler function to handle path not found condition.
@@ -203,7 +218,7 @@ namespace spt::http::router
     HttpRouter& operator=(const HttpRouter&) = delete;
 
   private:
-    void addParameter( std::string_view method, std::string_view path )
+    void addParameter( std::string_view method, std::string_view path, std::string_view ref )
     {
       using namespace std::string_literals;
       using namespace std::string_view_literals;
@@ -217,7 +232,7 @@ namespace spt::http::router
           } );
       if ( iter != std::cend( paths ) && full == iter->path )
       {
-        auto midx = iter->mindex( m );
+        auto midx = iter->indexOf( m );
         if ( midx )
         {
           throw DuplicateRouteError{ "Duplicate path "s + std::string{ path } + " for method "s + m };
@@ -227,7 +242,7 @@ namespace spt::http::router
         return;
       }
 
-      auto ps = Path{ std::move( full ), std::move( m ), handlers.size() };
+      auto ps = Path{ std::move( full ), std::move( m ), handlers.size(), std::string{ ref } };
       for ( auto&& p : paths )
       {
         if ( p.epath == ps.epath )
@@ -265,7 +280,7 @@ namespace spt::http::router
       if ( iter == std::cend( paths ) ) return std::nullopt;
       if ( full == iter->path )
       {
-        auto midx = iter->mindex( m );
+        auto midx = iter->indexOf( m );
         if ( midx ) return handlers[iter->handlers[*midx]]( request, std::move( params ) );
 #ifdef HAS_LOGGER
         LOG_INFO << "Method " << method << " not configured for path " << path;
@@ -279,7 +294,7 @@ namespace spt::http::router
       for ( ; iter != std::cend( paths ); ++iter )
       {
         if ( parts.size() != iter->parts.size() ) continue;
-        auto midx = iter->mindex( m );
+        auto midx = iter->indexOf( m );
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
         {

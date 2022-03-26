@@ -33,8 +33,8 @@ sudo make install
 ```
 
 ## Use
-The **HttpRouter<Request, Response>** class exposes two primary methods that
-are used to set up and perform routing:
+The **HttpRouter<Request, Response>** class exposes two primary methods - 
+`add` and `route` - that are used to set up and perform routing:
 * **CTOR** - Create an instance with the optional handlers to handle standard
   scenarios such as *Not Found (404)*, *Method Not Allowed (405)*, and
   *Internal Server Error (500)*. 
@@ -58,10 +58,90 @@ are used to set up and perform routing:
     optional constructor parameter), and an exception was thrown by the configured
     handler function for the *method:path*, the handler will be invoked.
 * If Boost has been found a few additional utility methods are exposed.
-  * **json** - Output the configured routes and some additional metadata as a JSON structure. 
+  * **json** - Output the configured routes and some additional metadata as a
+    JSON structure.  See the sample output below from the [device](test/device.cpp) test.
   * **str** - Output the configured routes and some additional metadata as a string.
   This is just the JSON representation serialised.
   * **operator<<** - Appends the string representation to the output stream.
+* **yaml** - Output the configured routes in YAML format which can be embedded
+  or cross-verified against the API OpenAPI Specifications file.  If using this
+  feature, please try to specify the optional `ref` parameter to the *add* method.
+  For example see the output below from the [device](test/device.cpp) test.
+
+<details>
+  <summary><strong>Sample JSON Output</strong></summary>
+
+```json
+{
+  "paths": [
+    {
+      "path": "/device/sensor/",
+      "methods": ["POST", "GET"]
+    },
+    {
+      "path": "/device/sensor/count/references/{id}",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/device/sensor/customer/code/{code}",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/device/sensor/facility/id/{id}",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/device/sensor/history/document/{id}",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/device/sensor/history/summary/{id}",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/device/sensor/id/{id}",
+      "methods": ["PUT", "GET", "DELETE"]
+    },
+    {
+      "path": "/device/sensor/identifier/{identifier}",
+      "methods": ["GET"]
+    },
+    {
+      "path": "/device/sensor/{property}/between/{start}/{end}",
+      "methods": ["GET"]
+    }
+  ],
+  "total": 9,
+  "static": 1,
+  "dynamic": 8
+}
+```
+</details>
+<details>
+  <summary><strong>Sample YAML Output</strong></summary>
+
+```yaml
+paths:
+  /device/sensor/:
+    $ref: "./paths/sensor.yaml#/root"
+  /device/sensor/count/references/{id}:
+    $ref: "./paths/sensor.yaml#/refcount"
+  /device/sensor/customer/code/{code}:
+    $ref: "./paths/sensor.yaml#/customer"
+  /device/sensor/facility/id/{id}:
+    $ref: "./paths/sensor.yaml#/facility"
+  /device/sensor/history/document/{id}:
+    $ref: "./paths/sensor.yaml#/history/document"
+  /device/sensor/history/summary/{id}:
+    $ref: "./paths/sensor.yaml#/history/summary"
+  /device/sensor/id/{id}:
+    $ref: "./paths/sensor.yaml#/id"
+  /device/sensor/identifier/{identifier}:
+    $ref: "./paths/sensor.yaml#/identifier"
+  /device/sensor/{property}/between/{start}/{end}:
+    $ref: "./paths/sensor.yaml#/between"
+```
+</details>
 
 The following shows sample use of the router.  See [basic](test/basic.cpp) test
 and other unit tests for more samples.
@@ -166,16 +246,16 @@ int main()
       };
   for ( auto&& url : urls )
   {
-    auto resp = r.route( "GET"s, url, request );
+    auto resp = r.route( "GET"sv, url, request );
     assert( resp );
     assert( *resp );
   }
   
-  auto resp = r.route( "PUT", "/device/sensor/"sv );
+  auto resp = r.route( "PUT"sv, "/device/sensor/"sv );
   assert( resp );
   assert( !*resp ); // PUT not configured
   
-  resp = r.route( "POST", "/device/sensor/history/document/{id}"sv );
+  resp = r.route( "POST"sv, "/device/sensor/history/document/{id}"sv );
   assert( resp );
   assert( !*resp ); // POST not configured
   
@@ -193,8 +273,9 @@ int main()
 </details>
 
 The `route` method returns a `std::optional<Response>`.  If no configured path
-matches, returns `std::nullopt`.  Otherwise, returns the response from the callback
-function.
+matches, returns `std::nullopt` (or the response from the not found handler if
+specified at construction time).  Otherwise, returns the response from the
+callback function.
 
 ## Docker
 A docker image with the header files is available at [Docker hub](https://hub.docker.com/repository/docker/sptrakesh/http-router).
@@ -220,7 +301,7 @@ The Linux numbers were from a VM running on Parallels on a Mac Book Pro 2019 mod
 [3.4118 million req/sec] for URL: /service/candy/seg_råtta
 [4.16667 million req/sec] for URL: /service/candy/lakrits
 [30.581 million req/sec] for URL: /service/shutdown
-[42.3729 million req/sec] for URL: /
+[43.29 million req/sec] for URL: /
 [4.79616 million req/sec] for URL: /some_file.html
 [4.62535 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
@@ -245,15 +326,18 @@ Checksum: 80000000
 
 ### Realistic Scenario
 A more realistic scenario was mocked up in [performance.cpp](performance/performance.cpp)
-and tested via both a single thread and multiple threads.  The results of the test
-are shown below:
+and tested via both a single thread and multiple threads. Router is set up with
+a couple of hundred routes to simulate a real API, and a few million requests
+sent against the router to measure the average performance.
+
+The results of the test are shown below:
 
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
 ```shell
-Single thread - [2.3916 million req/sec]
-Total urls routed: 260000000 in 108 seconds.
+Single thread - [2.42359 million req/sec]
+Total urls routed: 260000000 in 107 seconds.
 
 10 threads - [12.3703 million req/sec]
 Total urls routed: 260000000 in 21 seconds.

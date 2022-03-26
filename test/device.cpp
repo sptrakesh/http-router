@@ -246,66 +246,66 @@ SCENARIO( "Sensor device serialisation tests" )
     {
       REQUIRE( args.empty() );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/root"sv );
     r.add( method, "/device/sensor/"sv, []( const Request&, auto args )
     {
       REQUIRE( args.empty() );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/root"sv );
     r.add( "PUT"sv, "/device/sensor/id/{id}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/id"sv );
     r.add( method, "/device/sensor/id/{id}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/id"sv );
     r.add( "DELETE"sv, "/device/sensor/id/{id}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/id"sv );
     r.add( method, "/device/sensor/identifier/{identifier}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "identifier"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/identifier"sv );
     r.add( method, "/device/sensor/customer/code/{code}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "code"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/customer"sv );
     r.add( method, "/device/sensor/facility/id/{id}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/facility"sv );
     r.add( method, "/device/sensor/count/references/{id}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/refcount"sv );
     r.add( method, "/device/sensor/history/summary/{id}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/history/summary"sv );
     r.add( method, "/device/sensor/history/document/{id}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 1 );
       REQUIRE( args.contains( "id"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/history/document"sv );
     r.add( method, "/device/sensor/{property}/between/{start}/{end}"sv, []( const Request&, auto args )
     {
       REQUIRE( args.size() == 3 );
@@ -313,7 +313,7 @@ SCENARIO( "Sensor device serialisation tests" )
       REQUIRE( args.contains( "start"sv ) );
       REQUIRE( args.contains( "end"sv ) );
       return true;
-    } );
+    }, "./paths/sensor.yaml#/between"sv );
 
     WHEN( "Serialising to JSON" )
     {
@@ -345,6 +345,12 @@ SCENARIO( "Sensor device serialisation tests" )
       REQUIRE_FALSE( s.find( "total" ) == std::string::npos );
       REQUIRE_FALSE( s.find( "static" ) == std::string::npos );
       REQUIRE_FALSE( s.find( "dynamic" ) == std::string::npos );
+    }
+
+    AND_WHEN( "Generating YAML" )
+    {
+      auto yaml = r.yaml();
+      std::cout << yaml << std::endl;
     }
   }
 }
