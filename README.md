@@ -272,6 +272,63 @@ int main()
 ```
 </details>
 
+<details>
+  <summary><strong>Use with nghttp2</strong></summary>
+
+```c++
+#include <nghttp2/asio_http2_server.h>
+#include <log/NanoLog.h>
+#include <router/router.h>
+
+int main()
+{
+  struct Request
+  {
+    explicit Request( const nghttp2::asio_http2::server::request& req ) :
+      header{ req.header() }, method{ req.method() },
+      path{ req.uri().path }, query{ req.uri().raw_query } {}
+      
+    nghttp2::asio_http2::header_map header;
+    std::string method;
+    std::string path;
+    std::string query;
+    std::shared_ptr<std::string> body{ nullptr };
+  };
+  
+  struct Response
+  {
+    nghttp2::asio_http2::header_map headers;
+    std::string body{ "{}" };
+    uint16_t status{ 200 };
+    bool compressed{ false };
+  };
+  
+  spt::http::router::HttpRouter<const Request&, Response> router;
+  // set up router as in above sample
+  nghttp2::asio_http2::server::http2 server;
+  server.num_threads( 8 );
+  
+  server.handle( "/", [&router](const nghttp2::asio_http2::server::request& req,
+        const nghttp2::asio_http2::server::response& res)
+  {
+    auto request = Request{ req };
+    auto response = router.route( request.method, request.path, request );
+    assert( response );
+    res.write_head( response->status, response->headers );
+    res.end( response->body );
+  });
+  
+  boost::system::error_code ec;
+  if ( server.listen_and_serve( ec, "0.0.0.0", port, true ) )
+  {
+    LOG_CRIT << "error: " << ec.message();
+    return 1;
+  }
+}
+```
+
+</details>
+
 The `route` method returns a `std::optional<Response>`.  If no configured path
 matches, returns `std::nullopt` (or the response from the not found handler if
 specified at construction time).  Otherwise, returns the response from the
