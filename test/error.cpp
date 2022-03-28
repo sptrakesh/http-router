@@ -2,7 +2,7 @@
 // Created by Rakesh on 20/03/2022.
 //
 
-#if __GNUC__ > 10
+#if __GNUC__ > 10 || defined _WIN32
 #include <catch2/catch.hpp>
 #else
 #include <catch2/catch_test_macros.hpp>

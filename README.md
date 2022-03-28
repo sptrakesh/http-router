@@ -347,7 +347,8 @@ a sorted `std::vector`, and searched for using binary search.
 Benchmark numbers from [benchmark.cpp](performance/benchmark.cpp) are in the following sections.
 These were by computing the average time to route each URI path 10,000,000 times.
 The Linux numbers were from a VM running on Parallels on a Mac Book Pro 2019 model
-(limited to 6 of 16 available cores), bare metal numbers may be higher.
+(limited to 6 of 16 available cores), bare metal numbers may be higher. Similarly
+the Windows numbers where from a VM running on Parallels.
 
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
@@ -379,6 +380,23 @@ Checksum: 80000000
 [6.93963 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
+</details>
+
+<details>
+  <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
+
+```shell
+[2.45881 million req/sec] for URL: /service/candy/lollipop
+[2.4919 million req/sec] for URL: /service/candy/gum
+[2.43368 million req/sec] for URL: /service/candy/seg_råtta
+[2.3912 million req/sec] for URL: /service/candy/lakrits
+[4.39947 million req/sec] for URL: /service/shutdown
+[6.00962 million req/sec] for URL: /
+[3.0248 million req/sec] for URL: /some_file.html
+[2.54388 million req/sec] for URL: /another_file.jpeg
+Checksum: 80000000
+```
+
 </details>
 
 ### Realistic Scenario

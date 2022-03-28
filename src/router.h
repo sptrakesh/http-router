@@ -6,6 +6,7 @@
 
 #include "error.h"
 #include "split.h"
+#include <functional>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
@@ -303,7 +304,7 @@ namespace spt::http::router
           {
             if ( i == parts.size() - 1 )
             {
-              if ( midx ) handler = iter->handlers[*midx];
+              if ( midx ) handler = static_cast<int>( iter->handlers[*midx] );
               else
               {
 #ifdef HAS_LOGGER
@@ -320,7 +321,7 @@ namespace spt::http::router
           params[iview.substr( 1, iview.size() - 2 )] = parts[i];
           if ( i == parts.size() - 1 )
           {
-            if ( midx ) handler = iter->handlers[*midx];
+            if ( midx ) handler = static_cast<int>( iter->handlers[*midx] );
             else
             {
 #ifdef HAS_LOGGER

@@ -1,5 +1,10 @@
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O3 -march=native")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native")
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set(CMAKE_CXX_FLAGS_DEBUG "/MT /O2")
+  set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2")
+else()
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O3")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+endif()
 
 add_executable(benchmark benchmark.cpp)
 add_executable(benchmarkfast benchmarkfast.cpp)

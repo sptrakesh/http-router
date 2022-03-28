@@ -4,8 +4,9 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
 
-#if __GNUC__ > 10
+#if __GNUC__ > 10 || defined _WIN32
 #include <catch2/catch.hpp>
+#include <iostream>
 #else
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>

@@ -2,7 +2,7 @@
 // Created by Rakesh on 24/03/2022.
 //
 
-#if __GNUC__ > 10
+#if __GNUC__ > 10 || defined _WIN32
 #include <catch2/catch.hpp>
 #else
 #include <catch2/catch_test_macros.hpp>
@@ -16,9 +16,9 @@ SCENARIO( "HttpRouter error handlers test suite" )
 {
   struct Request
   {
-    uint e404{ 0 };
-    uint e405{ 0 };
-    uint e500{ 0 };
+    uint16_t e404{ 0 };
+    uint16_t e405{ 0 };
+    uint16_t e500{ 0 };
   } request;
 
   const auto error404 = []( Request& req, std::unordered_map<std::string_view, std::string_view> )
