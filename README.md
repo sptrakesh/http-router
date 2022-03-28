@@ -4,6 +4,8 @@
 * [Use](#use)
 * [Docker](#docker)
 * [Performance](#performance)
+  * [Benchmark](#benchmark)
+  * [Realistic](#realistic-scenario)
 * [FastRouter](#fast-router)
 
 Simple general purpose HTTP path based request router.  No assumption is made
@@ -428,6 +430,18 @@ Total urls routed: 260000000 in 64 seconds.
 
 10 threads - [18.4738 million req/sec]
 Total urls routed: 260000000 in 14 seconds.
+```
+</details>
+
+<details>
+  <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
+
+```shell
+Single thread - [1.54279 million req/sec]
+Total urls routed: 260000000 in 168 seconds.
+
+10 threads - [7.24779 million req/sec]
+Total urls routed: 260000000 in 35 seconds.
 ```
 </details>
 
