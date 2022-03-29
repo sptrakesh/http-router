@@ -22,8 +22,8 @@ on the type of framework being used.  We have used it mainly with
   * The `std::unordered_map` will hold the parsed *parameter->value* pairs.
 
 ## Install
-No install is necessary.  Copy the [router.h](src/router.h) and [split.h](src/split.h)
-into your project and use.
+No install is necessary.  Copy the [router.h](src/router.h), [split.h](src/split.h),
+and [concat.h](src/concat.h) files into your project and use.
 
 The headers may be installed into a standard location using `cmake`.
 
@@ -305,7 +305,18 @@ int main()
     bool compressed{ false };
   };
   
-  spt::http::router::HttpRouter<const Request&, Response> router;
+  auto const error404 = []( const Request&, std::unordered_map<std::string_view, std::string_view> ) -> Response
+  {
+    return { {}, R"({"code": 404, "cause": "Not Found"})"s, 404, false }
+  }
+  
+  auto const error405 - []( const Request&, std::unordered_map<std::string_view, std::string_view> ) -> Response
+  {
+    return { {}, R"({"code": 405, "cause": "Method Not Allowed"})"s, 405, false }
+  }
+  
+  auto router = spt::http::router::HttpRouter<const Request&, Response>::Builder{}.
+    withNotFound( error404 ).withMethodNotAllowed( error405 ).build();
   // set up router as in above sample
   nghttp2::asio_http2::server::http2 server;
   server.num_threads( 8 );

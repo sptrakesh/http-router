@@ -42,7 +42,11 @@ SCENARIO( "HttpRouter error handlers test suite" )
   GIVEN( "Router configured with error handlers" )
   {
     auto path = "/device/sensor/created/between/{start}/{end}"sv;
-    spt::http::router::HttpRouter<Request&, bool> r{ error404, error405, error500 };
+    auto r = spt::http::router::HttpRouter<Request&, bool>::Builder{}.
+      withNotFound( error404 ).
+      withMethodNotAllowed( error405 ).
+      withErrorHandler( error500 ).build();
+
     r.add( "GET"sv, path, [](Request&, auto ) { return true; });
     r.add( "GET"sv, "/throw/exception"sv, [](Request&, auto ) -> bool
     {

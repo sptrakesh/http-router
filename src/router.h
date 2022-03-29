@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "concat.h"
 #include "error.h"
 #include "split.h"
 #include <functional>
@@ -40,14 +41,14 @@ namespace spt::http::router
       Path( std::string&& p, std::string&& m, std::size_t h, std::string&& r = {} ) :
         path{ std::move( p ) }, ref{ std::move( r ) }, parts{ util::split<std::string>( path ) }
       {
-        using namespace std::string_literals;
+        using namespace std::string_view_literals;
 
         epath.reserve( path.size() );
         for ( auto&& part : parts )
         {
           if ( ( part.starts_with( '{' ) && !part.ends_with( '}' ) ) || part.starts_with( ':' ) )
           {
-            throw InvalidParameterError{ "Path "s + path + " has invalid parameter "s + part };
+            throw InvalidParameterError{ util::concat( "Path "sv, path, " has invalid parameter "sv, part ) };
           }
 
           if ( part.starts_with( '{' ) ) epath.append( "/{}" );
@@ -80,6 +81,8 @@ namespace spt::http::router
     };
 
   public:
+    struct Builder;
+
     /**
      * Request handler callback function.  Path parameters extracted are passed as an unordered_map.
      */
@@ -236,7 +239,7 @@ namespace spt::http::router
         auto midx = iter->indexOf( m );
         if ( midx )
         {
-          throw DuplicateRouteError{ "Duplicate path "s + std::string{ path } + " for method "s + m };
+          throw DuplicateRouteError{ util::concat( "Duplicate path "sv, path, " for method "sv, m ) };
         }
         iter->methods.push_back( std::move( m ) );
         iter->handlers.push_back( handlers.size() );
@@ -251,7 +254,7 @@ namespace spt::http::router
           if ( auto it = std::find( std::cbegin( iter->methods ), std::cend( iter->methods ), ps.methods[0] );
               it != std::cend( iter->methods ) )
           {
-            throw DuplicateRouteError{ "Duplicate path "s + ps.path + " clashes with "s + p.path };
+            throw DuplicateRouteError{ util::concat( "Duplicate path "sv, ps.path, " clashes with "sv, p.path ) };
           }
         }
       }
@@ -361,4 +364,68 @@ namespace spt::http::router
     return os;
   }
 #endif
+
+  /**
+   * A builder for the HttpRouter.  Use to configure error handlers when
+   * instantiating the router.
+   * @tparam Request User defined structure with the request context necessary for
+   *   the router handler function.
+   * @tparam Response The response from the handler function.
+   */
+  template<typename Request, typename Response>
+  struct HttpRouter<Request, Response>::Builder
+  {
+    Builder() = default;
+    ~Builder() = default;
+    Builder(const Builder&) = delete;
+    Builder& operator=(const Builder&) = delete;
+
+    /**
+     * Set the HTTP 404 error handler to use with the router.
+     * @param h The handler function.
+     * @return Reference to this builder for chaining.
+     */
+    Builder& withNotFound( typename HttpRouter<Request, Response>::Handler&& h )
+    {
+      notFound = std::move( h );
+      return *this;
+    }
+
+    /**
+     * Set the HTTP 405 error handler to use with the router.
+     * @param h The handler function.
+     * @return Reference to this builder for chaining.
+     */
+    Builder& withMethodNotAllowed( typename HttpRouter<Request, Response>::Handler&& h )
+    {
+      methodNotAllowed = std::move( h );
+      return *this;
+    }
+
+    /**
+     * Set the HTTP 500 error handler to use with the router.
+     * @param h The handler function.
+     * @return Reference to this builder for chaining.
+     */
+    Builder& withErrorHandler( typename HttpRouter<Request, Response>::Handler&& h )
+    {
+      errorHandler = std::move( h );
+      return *this;
+    }
+
+    /**
+     * Build the router with the error handlers provided.  The handlers are
+     * moved, so no further use of the builder is possible.
+     * @return The properly initialised router.
+     */
+    [[nodiscard]] HttpRouter<Request, Response> build()
+    {
+      return { std::move( notFound ), std::move( methodNotAllowed ), std::move( errorHandler ) };
+    }
+
+  private:
+    std::optional<Handler> notFound{ std::nullopt };
+    std::optional<Handler> methodNotAllowed{ std::nullopt };
+    std::optional<Handler> errorHandler{ std::nullopt };
+  };
 }
