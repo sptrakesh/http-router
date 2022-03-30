@@ -400,6 +400,7 @@ Checksum: 80000000
 <details>
   <summary><strong>Linux GCC 11.2</strong></summary>
 
+**With std::unordered_map**
 ```shell
 [5.98802 million req/sec] for URL: /service/candy/lollipop
 [6.44745 million req/sec] for URL: /service/candy/gum
@@ -409,6 +410,19 @@ Checksum: 80000000
 [28.5714 million req/sec] for URL: /
 [8.16993 million req/sec] for URL: /some_file.html
 [6.93963 million req/sec] for URL: /another_file.jpeg
+Checksum: 80000000
+```
+
+**With boost::container::flat_map**
+```shell
+[8.59845 million req/sec] for URL: /service/candy/lollipop
+[8.78735 million req/sec] for URL: /service/candy/gum
+[8.05153 million req/sec] for URL: /service/candy/seg_råtta
+[8.48896 million req/sec] for URL: /service/candy/lakrits
+[22.2717 million req/sec] for URL: /service/shutdown
+[30.4878 million req/sec] for URL: /
+[11.8765 million req/sec] for URL: /some_file.html
+[9.37207 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 </details>
@@ -463,12 +477,22 @@ Total urls routed: 260000000 in 17 seconds.
 <details>
   <summary><strong>Linux GCC 11.2</strong></summary>
 
+**With std::unordered_map**
 ```shell
 Single thread - [4.06155 million req/sec]
 Total urls routed: 260000000 in 64 seconds.
 
 10 threads - [18.4738 million req/sec]
 Total urls routed: 260000000 in 14 seconds.
+```
+
+**With boost::container::flat_map**
+```shell
+Single thread - [4.84677 million req/sec]
+Total urls routed: 260000000 in 53 seconds.
+
+10 threads - [22.0115 million req/sec]
+Total urls routed: 260000000 in 11 seconds.
 ```
 </details>
 
