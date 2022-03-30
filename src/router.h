@@ -10,7 +10,6 @@
 #include <functional>
 #include <mutex>
 #include <optional>
-#include <unordered_map>
 #if defined __has_include
   #if __has_include(<log/NanoLog.h>)
     #include <log/NanoLog.h>
@@ -20,8 +19,11 @@
 
 #ifdef HAS_BOOST
   #include <ostream>
-#include <boost/json/array.hpp>
-#include <boost/json/serialize.hpp>
+  #include <boost/container/flat_map.hpp>
+  #include <boost/json/array.hpp>
+  #include <boost/json/serialize.hpp>
+#else
+  #include <unordered_map>
 #endif
 
 namespace spt::http::router
@@ -83,10 +85,16 @@ namespace spt::http::router
   public:
     struct Builder;
 
+#ifdef HAS_BOOST
+    using Params = boost::container::flat_map<std::string_view, std::string_view>;
+#else
+    using Params = std::unordered_map<std::string_view, std::string_view>;
+#endif
     /**
-     * Request handler callback function.  Path parameters extracted are passed as an unordered_map.
+     * Request handler callback function.  Path parameters extracted are passed
+     * as either a std::unordered_map or boost::container::flat_map.
      */
-    using Handler = std::function<Response( Request, std::unordered_map<std::string_view, std::string_view>&& )>;
+    using Handler = std::function<Response( Request, Params&& )>;
 
     /**
      * Add the specified path for the specified HTTP method/verb to the router.
@@ -271,7 +279,7 @@ namespace spt::http::router
         std::string_view path, Request request ) const
     {
       using namespace std::string_view_literals;
-      std::unordered_map<std::string_view, std::string_view> params{};
+      Params params{};
 
       auto full = std::string{ path };
       auto m = std::string{ method };

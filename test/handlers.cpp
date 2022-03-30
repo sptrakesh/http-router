@@ -21,19 +21,19 @@ SCENARIO( "HttpRouter error handlers test suite" )
     uint16_t e500{ 0 };
   } request;
 
-  const auto error404 = []( Request& req, std::unordered_map<std::string_view, std::string_view> )
+  const auto error404 = []( Request& req, auto )
   {
     ++req.e404;
     return false;
   };
 
-  const auto error405 = []( Request& req, std::unordered_map<std::string_view, std::string_view> )
+  const auto error405 = []( Request& req, auto )
   {
     ++req.e405;
     return false;
   };
 
-  const auto error500 = []( Request& req, std::unordered_map<std::string_view, std::string_view> )
+  const auto error500 = []( Request& req, auto )
   {
     ++req.e500;
     return false;

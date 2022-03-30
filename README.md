@@ -18,8 +18,12 @@ on the type of framework being used.  We have used it mainly with
 * Templated on the **Response** type and an input **Request**.
 * Function based routing.  Successful matches are *routed* to the specified
   *handler* callback function.
-  * Callback function has signature `Response( Request, std::unordered_map<std::string_view, std::string_view>&& )` 
-  * The `std::unordered_map` will hold the parsed *parameter->value* pairs.
+  * Parameters are returned as a *map*.  If [boost](https://boost.org/) is found,
+    a `boost::container::flat_map` is returned, else a `std::unordered_map` is
+    returned.
+  * Callback function has signature `Response( Request, MapType<std::string_view, std::string_view>&& )` 
+    where `MapType` is either `boost::container::flat_map` or `std::unordered_map`.
+  * The `MapType` will hold the parsed *parameter->value* pairs.
 
 ## Install
 No install is necessary.  Copy the [router.h](src/router.h), [split.h](src/split.h),
@@ -305,12 +309,12 @@ int main()
     bool compressed{ false };
   };
   
-  auto const error404 = []( const Request&, std::unordered_map<std::string_view, std::string_view> ) -> Response
+  auto const error404 = []( const Request&, auto ) -> Response
   {
     return { {}, R"({"code": 404, "cause": "Not Found"})"s, 404, false }
   }
   
-  auto const error405 - []( const Request&, std::unordered_map<std::string_view, std::string_view> ) -> Response
+  auto const error405 - []( const Request&, auto ) -> Response
   {
     return { {}, R"({"code": 405, "cause": "Method Not Allowed"})"s, 405, false }
   }
@@ -366,6 +370,7 @@ the Windows numbers where from a VM running on Parallels.
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
+**With std::unordered_map**
 ```shell
 [3.36474 million req/sec] for URL: /service/candy/lollipop
 [4.22833 million req/sec] for URL: /service/candy/gum
@@ -375,6 +380,19 @@ the Windows numbers where from a VM running on Parallels.
 [43.29 million req/sec] for URL: /
 [4.79616 million req/sec] for URL: /some_file.html
 [4.62535 million req/sec] for URL: /another_file.jpeg
+Checksum: 80000000
+```
+
+**With boost::container::flat_map**
+```shell
+[3.99361 million req/sec] for URL: /service/candy/lollipop
+[5.29942 million req/sec] for URL: /service/candy/gum
+[4.04694 million req/sec] for URL: /service/candy/seg_råtta
+[5.21648 million req/sec] for URL: /service/candy/lakrits
+[28.9017 million req/sec] for URL: /service/shutdown
+[45.6621 million req/sec] for URL: /
+[6.10128 million req/sec] for URL: /some_file.html
+[5.9312 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 </details>
@@ -423,12 +441,22 @@ The results of the test are shown below:
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
+**With std::unordered_map**
 ```shell
 Single thread - [2.42359 million req/sec]
 Total urls routed: 260000000 in 107 seconds.
 
 10 threads - [12.3703 million req/sec]
 Total urls routed: 260000000 in 21 seconds.
+```
+
+**With boost::container::flat_map**
+```shell
+Single thread - [2.812 million req/sec]
+Total urls routed: 260000000 in 92 seconds.
+
+10 threads - [14.638 million req/sec]
+Total urls routed: 260000000 in 17 seconds.
 ```
 </details>
 
@@ -467,7 +495,7 @@ an optimal router.
 ### Path Parameters
 Path parameters are handled differently.  Use the `:<param name>` pattern to
 specify parameters.  The handler callback function also returns a `std::vector`
-of parameter values instead of `std::unordered_map`.
+of parameter values instead of `std::unordered_map` or `boost::container::flat_map`.
 
 ### Performance
 Benchmark numbers from [benchmarkfast.cpp](performance/benchmarkfast.cpp) are below:
