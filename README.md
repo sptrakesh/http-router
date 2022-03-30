@@ -19,10 +19,10 @@ on the type of framework being used.  We have used it mainly with
 * Function based routing.  Successful matches are *routed* to the specified
   *handler* callback function.
   * Parameters are returned as a *map*.  If [boost](https://boost.org/) is found,
-    a `boost::container::flat_map` is returned, else a `std::unordered_map` is
+    a `boost::container::flat_map` is returned, else a `std::map` is
     returned.
   * Callback function has signature `Response( Request, MapType<std::string_view, std::string_view>&& )` 
-    where `MapType` is either `boost::container::flat_map` or `std::unordered_map`.
+    where `MapType` is either `boost::container::flat_map` or `std::map`.
   * The `MapType` will hold the parsed *parameter->value* pairs.
 
 ## Install
@@ -370,16 +370,16 @@ the Windows numbers where from a VM running on Parallels.
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
-**With std::unordered_map**
+**With std::map**
 ```shell
-[3.36474 million req/sec] for URL: /service/candy/lollipop
-[4.22833 million req/sec] for URL: /service/candy/gum
-[3.4118 million req/sec] for URL: /service/candy/seg_råtta
-[4.16667 million req/sec] for URL: /service/candy/lakrits
-[30.581 million req/sec] for URL: /service/shutdown
-[43.29 million req/sec] for URL: /
-[4.79616 million req/sec] for URL: /some_file.html
-[4.62535 million req/sec] for URL: /another_file.jpeg
+[3.38868 million req/sec] for URL: /service/candy/lollipop
+[4.25894 million req/sec] for URL: /service/candy/gum
+[3.47947 million req/sec] for URL: /service/candy/seg_råtta
+[4.30478 million req/sec] for URL: /service/candy/lakrits
+[21.0084 million req/sec] for URL: /service/shutdown
+[31.4465 million req/sec] for URL: /
+[5.40249 million req/sec] for URL: /some_file.html
+[5.22193 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 
@@ -400,7 +400,7 @@ Checksum: 80000000
 <details>
   <summary><strong>Linux GCC 11.2</strong></summary>
 
-**With std::unordered_map**
+**With std::map**
 ```shell
 [5.98802 million req/sec] for URL: /service/candy/lollipop
 [6.44745 million req/sec] for URL: /service/candy/gum
@@ -455,13 +455,13 @@ The results of the test are shown below:
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
-**With std::unordered_map**
+**With std::map**
 ```shell
 Single thread - [2.42359 million req/sec]
 Total urls routed: 260000000 in 107 seconds.
 
-10 threads - [12.3703 million req/sec]
-Total urls routed: 260000000 in 21 seconds.
+10 threads - [13.4848 million req/sec]
+Total urls routed: 260000000 in 19 seconds.
 ```
 
 **With boost::container::flat_map**
@@ -477,7 +477,7 @@ Total urls routed: 260000000 in 17 seconds.
 <details>
   <summary><strong>Linux GCC 11.2</strong></summary>
 
-**With std::unordered_map**
+**With std::map**
 ```shell
 Single thread - [4.06155 million req/sec]
 Total urls routed: 260000000 in 64 seconds.
@@ -519,7 +519,7 @@ an optimal router.
 ### Path Parameters
 Path parameters are handled differently.  Use the `:<param name>` pattern to
 specify parameters.  The handler callback function also returns a `std::vector`
-of parameter values instead of `std::unordered_map` or `boost::container::flat_map`.
+of parameter values instead of `std::map` or `boost::container::flat_map`.
 
 ### Performance
 Benchmark numbers from [benchmarkfast.cpp](performance/benchmarkfast.cpp) are below:

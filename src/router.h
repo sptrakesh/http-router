@@ -23,7 +23,7 @@
   #include <boost/json/array.hpp>
   #include <boost/json/serialize.hpp>
 #else
-  #include <unordered_map>
+  #include <map>
 #endif
 
 namespace spt::http::router
@@ -88,11 +88,11 @@ namespace spt::http::router
 #ifdef HAS_BOOST
     using Params = boost::container::flat_map<std::string_view, std::string_view>;
 #else
-    using Params = std::unordered_map<std::string_view, std::string_view>;
+    using Params = std::map<std::string_view, std::string_view>;
 #endif
     /**
      * Request handler callback function.  Path parameters extracted are passed
-     * as either a std::unordered_map or boost::container::flat_map.
+     * as either a std::map or boost::container::flat_map.
      */
     using Handler = std::function<Response( Request, Params&& )>;
 
