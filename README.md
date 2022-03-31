@@ -431,14 +431,14 @@ Checksum: 80000000
   <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
 
 ```shell
-[2.45881 million req/sec] for URL: /service/candy/lollipop
-[2.4919 million req/sec] for URL: /service/candy/gum
-[2.43368 million req/sec] for URL: /service/candy/seg_råtta
-[2.3912 million req/sec] for URL: /service/candy/lakrits
-[4.39947 million req/sec] for URL: /service/shutdown
-[6.00962 million req/sec] for URL: /
-[3.0248 million req/sec] for URL: /some_file.html
-[2.54388 million req/sec] for URL: /another_file.jpeg
+[2.89771 million req/sec] for URL: /service/candy/lollipop
+[2.89603 million req/sec] for URL: /service/candy/gum
+[2.88934 million req/sec] for URL: /service/candy/seg_r├Ñtta
+[2.90444 million req/sec] for URL: /service/candy/lakrits
+[6.32511 million req/sec] for URL: /service/shutdown
+[9.40734 million req/sec] for URL: /
+[3.8835 million req/sec] for URL: /some_file.html
+[3.13676 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 
@@ -500,11 +500,11 @@ Total urls routed: 260000000 in 11 seconds.
   <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
 
 ```shell
-Single thread - [1.54279 million req/sec]
-Total urls routed: 260000000 in 168 seconds.
+Single thread - [2.02653 million req/sec]
+Total urls routed: 260000000 in 128 seconds.
 
-10 threads - [7.24779 million req/sec]
-Total urls routed: 260000000 in 35 seconds.
+10 threads - [9.21953 million req/sec]
+Total urls routed: 260000000 in 28 seconds.
 ```
 </details>
 

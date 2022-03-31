@@ -171,8 +171,7 @@ namespace spt::http::router
       int d = 0;
       for ( auto&& p : paths )
       {
-        auto path = boost::json::object{ { "path", p.path }, { "methods", p.methods } };
-        arr.template emplace_back( path );
+        arr.push_back( boost::json::object{ { "path", p.path }, { "methods", p.methods } } );
         if ( p.path.find( "{" ) != std::string::npos ) ++d;
         else ++s;
       }
