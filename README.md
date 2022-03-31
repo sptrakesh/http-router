@@ -50,7 +50,7 @@ The **HttpRouter<Request, Response>** class exposes two primary methods -
   thread safety, but just in case route additions are set up lazily in a
   multi-threaded environment, a `std::mutex` is used to ensure thread safety.
   * Duplicate routes will throw a [`spt::http::router::DuplicateRouteError`](src/error.h) exception.
-  * Routes with invalid parameter will throw a [`spt::http::router::InvalidParameterError](src/error.h) exception.
+  * Routes with invalid parameter will throw a [`spt::http::router::InvalidParameterError`](src/error.h) exception.
     * This is thrown if a parameter uses the `:<parameter>` form. 
     * This is thrown if a parameter does not end with the `}` character.
 * **route** - When a client request is received, delegate to the router to handle
