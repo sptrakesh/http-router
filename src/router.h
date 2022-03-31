@@ -67,7 +67,7 @@ namespace spt::http::router
       Path(const Path&) = delete;
       Path& operator=(const Path&) = delete;
 
-      std::optional<std::size_t> indexOf( const std::string& method ) const
+      [[nodiscard]] std::optional<std::size_t> indexOf( const std::string& method ) const
       {
         auto it = std::find( std::cbegin( methods ), std::cend( methods ), method );
         if ( it == std::cend( methods ) ) return std::nullopt;
@@ -243,8 +243,7 @@ namespace spt::http::router
           } );
       if ( iter != std::cend( paths ) && full == iter->path )
       {
-        auto midx = iter->indexOf( m );
-        if ( midx )
+        if ( auto midx = iter->indexOf( m ); midx )
         {
           throw DuplicateRouteError{ util::concat( "Duplicate path "sv, path, " for method "sv, m ) };
         }
@@ -291,8 +290,10 @@ namespace spt::http::router
       if ( iter == std::cend( paths ) ) return std::nullopt;
       if ( full == iter->path )
       {
-        auto midx = iter->indexOf( m );
-        if ( midx ) return handlers[iter->handlers[*midx]]( request, std::move( params ) );
+        if ( auto midx = iter->indexOf( m ); midx )
+        {
+          return handlers[iter->handlers[*midx]]( request, std::move( params ) );
+        }
 #ifdef HAS_LOGGER
         LOG_INFO << "Method " << method << " not configured for path " << path;
 #endif

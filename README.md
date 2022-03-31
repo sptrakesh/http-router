@@ -2,6 +2,7 @@
 
 * [Install](#install)
 * [Use](#use)
+  * [Boost](#use-with-boost) 
 * [Docker](#docker)
 * [Performance](#performance)
   * [Benchmark](#benchmark)
@@ -351,6 +352,15 @@ matches, returns `std::nullopt` (or the response from the not found handler if
 specified at construction time).  Otherwise, returns the response from the
 callback function.
 
+### Use With Boost
+If you project uses [boost](https://boost.org/), set the `HAS_BOOST` preprocessor
+define to benefit from the additional features and performance.  If using `cmake`
+add a line similar to the following to your `CMakeLists.txt`.
+
+```shell
+add_definitions(-DHAS_BOOST)
+```
+
 ## Docker
 A docker image with the header files is available at [Docker hub](https://hub.docker.com/repository/docker/sptrakesh/http-router).
 A very simple image with the headers installed under `/opt/spt/include`.  Use
@@ -367,6 +377,7 @@ The Linux numbers were from a VM running on Parallels on a Mac Book Pro 2019 mod
 (limited to 6 of 16 available cores), bare metal numbers may be higher. Similarly
 the Windows numbers where from a VM running on Parallels.
 
+#### Mac OS X
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
@@ -397,6 +408,7 @@ Checksum: 80000000
 ```
 </details>
 
+#### Linux
 <details>
   <summary><strong>Linux GCC 11.2</strong></summary>
 
@@ -427,13 +439,14 @@ Checksum: 80000000
 ```
 </details>
 
+#### Windows 10
 <details>
   <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
 
 ```shell
 [2.89771 million req/sec] for URL: /service/candy/lollipop
 [2.89603 million req/sec] for URL: /service/candy/gum
-[2.88934 million req/sec] for URL: /service/candy/seg_r├Ñtta
+[2.88934 million req/sec] for URL: /service/candy/seg_råtta
 [2.90444 million req/sec] for URL: /service/candy/lakrits
 [6.32511 million req/sec] for URL: /service/shutdown
 [9.40734 million req/sec] for URL: /
@@ -452,6 +465,7 @@ sent against the router to measure the average performance.
 
 The results of the test are shown below:
 
+#### Mac OS X
 <details>
   <summary><strong>Mac OS X Apple clang version 13.1.6 (clang-1316.0.21.2)</strong></summary>
 
@@ -474,6 +488,7 @@ Total urls routed: 260000000 in 17 seconds.
 ```
 </details>
 
+#### Linux
 <details>
   <summary><strong>Linux GCC 11.2</strong></summary>
 
@@ -496,6 +511,7 @@ Total urls routed: 260000000 in 11 seconds.
 ```
 </details>
 
+#### Windows 10
 <details>
   <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
 
