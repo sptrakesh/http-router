@@ -15,6 +15,11 @@
     #include <log/NanoLog.h>
     #define HAS_LOGGER 1
   #endif
+  #ifndef HAS_BOOST
+    #if __has_include(<boost/container/flat_map.hpp>)
+      #define HAS_BOOST 1
+    #endif
+#endif
 #endif
 
 #ifdef HAS_BOOST
@@ -34,8 +39,14 @@ namespace spt::http::router
    * @tparam Request User defined structure with the request context necessary for
    *   the handler function.
    * @tparam Response The response from the handler function.
+   * @tparam Map The type of map to use to return the parsed path parameters.
+   *   If boost has been found defaults to boost::container::flat_map, else std::map
    */
-  template<typename Request, typename Response>
+#ifdef HAS_BOOST
+  template<typename Request, typename Response, typename Map = boost::container::flat_map<std::string_view, std::string_view>>
+#else
+  template<typename Request, typename Response, typename Map = std::map<std::string_view, std::string_view>>
+#endif
   class HttpRouter
   {
     struct Path
@@ -83,18 +94,14 @@ namespace spt::http::router
     };
 
   public:
+    using MapType [[maybe_unused]] = Map;
     struct Builder;
 
-#ifdef HAS_BOOST
-    using Params = boost::container::flat_map<std::string_view, std::string_view>;
-#else
-    using Params = std::map<std::string_view, std::string_view>;
-#endif
     /**
      * Request handler callback function.  Path parameters extracted are passed
      * as either a std::map or boost::container::flat_map.
      */
-    using Handler = std::function<Response( Request, Params&& )>;
+    using Handler = std::function<Response( Request, Map&& )>;
 
     /**
      * Add the specified path for the specified HTTP method/verb to the router.
@@ -277,7 +284,7 @@ namespace spt::http::router
         std::string_view path, Request request ) const
     {
       using namespace std::string_view_literals;
-      Params params{};
+      Map params{};
 
       auto full = std::string{ path };
       auto m = std::string{ method };
@@ -380,8 +387,8 @@ namespace spt::http::router
    *   the router handler function.
    * @tparam Response The response from the handler function.
    */
-  template<typename Request, typename Response>
-  struct HttpRouter<Request, Response>::Builder
+  template<typename Request, typename Response, typename Map>
+  struct HttpRouter<Request, Response, Map>::Builder
   {
     Builder() = default;
     ~Builder() = default;

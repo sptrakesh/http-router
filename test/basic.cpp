@@ -20,7 +20,7 @@ SCENARIO( "HttpRouter test suite" )
   {
     spt::http::router::HttpRouter<const Request&, bool> r;
 
-    r.add( "GET"sv, "/service/candy/{kind}"sv, [](const Request&, auto params)
+    r.add( "GET"sv, "/service/candy/{kind}"sv, [](const Request&, spt::http::router::HttpRouter<const Request&, bool>::MapType params)
     {
       REQUIRE( params.size() == 1 );
       REQUIRE( params.contains( "kind"s ) );

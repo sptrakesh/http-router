@@ -16,12 +16,15 @@ on the type of framework being used.  We have used it mainly with
 * Parameters (slugs) are represented using curly brace enclosed name `{param}`.
   * Curly brace form was chosen in favour of `:param` for sorting purpose.
   * Sorting with `{` implies use of non-ascii characters in path will have inconsistent behaviour.
-* Templated on the **Response** type and an input **Request**.
+* Templated on the **Response** type and an input **Request**.  Optionally
+  specify the type of *Map* container to use to hold the parsed path parameters.
+  Defaults to `boost::container::flat_map` if [boost](https://boost.org/) is found,
+  or to `std::map`.  The type specified must be interface compatible with
+  `std::map<std::string_view,std::string_view>`.
 * Function based routing.  Successful matches are *routed* to the specified
   *handler* callback function.
-  * Parameters are returned as a *map*.  If [boost](https://boost.org/) is found,
-    a `boost::container::flat_map` is returned, else a `std::map` is
-    returned.
+  * Parameters are returned as a *map*.  The type of map is determined via the
+    optional third template parameter.
   * Callback function has signature `Response( Request, MapType<std::string_view, std::string_view>&& )` 
     where `MapType` is either `boost::container::flat_map` or `std::map`.
   * The `MapType` will hold the parsed *parameter->value* pairs.
@@ -45,10 +48,16 @@ The **HttpRouter<Request, Response>** class exposes two primary methods -
 * **CTOR** - Create an instance with the optional handlers to handle standard
   scenarios such as *Not Found (404)*, *Method Not Allowed (405)*, and
   *Internal Server Error (500)*. 
+  * Use the **Builder** to specify the desired error handlers and initialise the
+    router in a more convenient manner.
 * **add** - Use to add paths or parametrised paths to the router.
   * This is thread safe.  Configuring routing should generally not need
-  thread safety, but just in case route additions are set up lazily in a
+  thread safety, but just in case route additions are set up in parallel in a
   multi-threaded environment, a `std::mutex` is used to ensure thread safety.
+    * The general expectation (standard pattern when configuring routes) is
+      that all the routes are configured before the server starts routing requests.
+    * Performing routing while additional routes are being added to the router
+      could lead to undefined behaviour.
   * Duplicate routes will throw a [`spt::http::router::DuplicateRouteError`](src/error.h) exception.
   * Routes with invalid parameter will throw a [`spt::http::router::InvalidParameterError`](src/error.h) exception.
     * This is thrown if a parameter uses the `:<parameter>` form. 
@@ -173,7 +182,7 @@ int main()
   
   const auto method = "GET"sv;
   spt::http::router::HttpRouter<const Request&, bool> r;
-  r.add( "POST"sv, "/device/sensor/"sv, []( const Request&, auto args )
+  r.add( "POST"sv, "/device/sensor/"sv, []( const Request&, spt::http::router::HttpRouter<const Request&, bool>::MapType args )
     {
       assert( args.empty() );
       return true;
@@ -310,14 +319,30 @@ int main()
     bool compressed{ false };
   };
   
-  auto const error404 = []( const Request&, auto ) -> Response
+  auto const error404 = []( const Request&, spt::http::router::HttpRouter<const Request&, Response>::MapType ) -> Response
   {
-    return { {}, R"({"code": 404, "cause": "Not Found"})"s, 404, false }
+    auto json = R"({"code": 404, "cause": "Not Found"})"s;
+    auto headers = nghttp2::asio_http2::header_map{
+      { "Access-Control-Allow-Origin", { "*", false} },
+      { "Access-Control-Allow-Methods", { "DELETE,GET,OPTIONS,POST,PUT", false } },
+      { "Access-Control-Allow-Headers", { "*, authorization", false } },
+      { "content-type", { "application/json; charset=utf-8", false } },
+      { "content-length", { std::to_string( json.size() ), false } }
+    };
+    return { std::move( headers ), std::move( json ), 404, false }
   }
   
-  auto const error405 - []( const Request&, auto ) -> Response
+  auto const error405 - []( const Request&, spt::http::router::HttpRouter<const Request&, Response>::MapType ) -> Response
   {
-    return { {}, R"({"code": 405, "cause": "Method Not Allowed"})"s, 405, false }
+    auto json = R"({"code": 405, "cause": "Method Not Allowed"})"s;
+    auto headers = nghttp2::asio_http2::header_map{
+      { "Access-Control-Allow-Origin", { "*", false} },
+      { "Access-Control-Allow-Methods", { "DELETE,GET,OPTIONS,POST,PUT", false } },
+      { "Access-Control-Allow-Headers", { "*, authorization", false } },
+      { "content-type", { "application/json; charset=utf-8", false } },
+      { "content-length", { std::to_string( json.size() ), false } }
+    };
+    return { std::move( headers ), std::move( json ), 405, false }
   }
   
   auto router = spt::http::router::HttpRouter<const Request&, Response>::Builder{}.
@@ -333,7 +358,7 @@ int main()
     auto response = router.route( request.method, request.path, request );
     assert( response );
     res.write_head( response->status, response->headers );
-    res.end( response->body );
+    res.end( std::move( response->body ) );
   });
   
   boost::system::error_code ec;
@@ -354,12 +379,15 @@ callback function.
 
 ### Use With Boost
 If you project uses [boost](https://boost.org/), set the `HAS_BOOST` preprocessor
-define to benefit from the additional features and performance.  If using `cmake`
-add a line similar to the following to your `CMakeLists.txt`.
+define to benefit from the additional features and performance (when using the
+default *Map* template parameter).  If using `cmake` add a line similar to the 
+following to your `CMakeLists.txt`.
 
 ```shell
 add_definitions(-DHAS_BOOST)
 ```
+
+This is **needed only if** your compiler **does not support** the `__has_include` macro.
 
 ## Docker
 A docker image with the header files is available at [Docker hub](https://hub.docker.com/repository/docker/sptrakesh/http-router).
@@ -374,8 +402,8 @@ a sorted `std::vector`, and searched for using binary search.
 Benchmark numbers from [benchmark.cpp](performance/benchmark.cpp) are in the following sections.
 These were by computing the average time to route each URI path 10,000,000 times.
 The Linux numbers were from a VM running on Parallels on a Mac Book Pro 2019 model
-(limited to 6 of 16 available cores), bare metal numbers may be higher. Similarly
-the Windows numbers where from a VM running on Parallels.
+(limited to 6 of 16 available hardware threads or 3 of 8 CPU cores), bare metal
+numbers may be higher. Similarly, the Windows numbers where from a VM running on Parallels.
 
 #### Mac OS X
 <details>
@@ -461,7 +489,9 @@ Checksum: 80000000
 A more realistic scenario was mocked up in [performance.cpp](performance/performance.cpp)
 and tested via both a single thread and multiple threads. Router is set up with
 a couple of hundred routes to simulate a real API, and a few million requests
-sent against the router to measure the average performance.
+sent against the router to measure the average performance.  As shown by the
+numbers below, a total of 260 million requests are used to generate the average
+performance statistics.
 
 The results of the test are shown below:
 
