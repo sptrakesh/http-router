@@ -9,8 +9,9 @@
   * [Realistic](#realistic-scenario)
 * [FastRouter](#fast-router)
 
-Simple general purpose HTTP path based request router.  No assumption is made
-on the type of framework being used.  We have used it mainly with
+Simple general purpose HTTP path based request router.  Requires a compiler with
+C++20 support.  No assumption is made on the type of framework being used.
+We have used it mainly with
 [nghttp2](https://www.nghttp2.org/documentation/libnghttp2_asio.html).
 * Supports static and parametrised URI paths.
 * Parameters (slugs) are represented using curly brace enclosed name `{param}`.
@@ -20,13 +21,17 @@ on the type of framework being used.  We have used it mainly with
   specify the type of *Map* container to use to hold the parsed path parameters.
   Defaults to `boost::container::flat_map` if [boost](https://boost.org/) is found,
   or to `std::map`.  The type specified must be interface compatible with
-  `std::map<std::string_view,std::string_view>`.
+  `std::map`.  The `key` and `value` must be either `std::string_view` or `std::string`.
 * Function based routing.  Successful matches are *routed* to the specified
   *handler* callback function.
   * Parameters are returned as a *map*.  The type of map is determined via the
     optional third template parameter.
-  * Callback function has signature `Response( Request, MapType<std::string_view, std::string_view>&& )` 
-    where `MapType` is either `boost::container::flat_map` or `std::map`.
+  * Callback function has signature `Response( Request, MapType<String, String>&& )` 
+    where `MapType` is either `boost::container::flat_map` or `std::map` (if
+    using defaults, or the container you specify) and
+    `String` is `std::string_view` (if using defaults) or `std::string` if you
+    specify.  See [string.cpp](test/string.cpp) test for sample of specifying
+    your preferred container and `std::string` as the type in the container.
   * The `MapType` will hold the parsed *parameter->value* pairs.
 
 ## Install
@@ -43,7 +48,7 @@ sudo make install
 ```
 
 ## Use
-The **HttpRouter<Request, Response>** class exposes two primary methods - 
+The **HttpRouter<Request, Response, Map>** class exposes two primary methods - 
 `add` and `route` - that are used to set up and perform routing:
 * **CTOR** - Create an instance with the optional handlers to handle standard
   scenarios such as *Not Found (404)*, *Method Not Allowed (405)*, and
@@ -348,6 +353,7 @@ int main()
   auto router = spt::http::router::HttpRouter<const Request&, Response>::Builder{}.
     withNotFound( error404 ).withMethodNotAllowed( error405 ).build();
   // set up router as in above sample
+  
   nghttp2::asio_http2::server::http2 server;
   server.num_threads( 8 );
   

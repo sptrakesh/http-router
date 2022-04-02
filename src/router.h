@@ -43,10 +43,12 @@ namespace spt::http::router
    *   If boost has been found defaults to boost::container::flat_map, else std::map
    */
 #ifdef HAS_BOOST
-  template<typename Request, typename Response, typename Map = boost::container::flat_map<std::string_view, std::string_view>>
+  template <typename Request, typename Response, typename Map = boost::container::flat_map<std::string_view, std::string_view>>
 #else
-  template<typename Request, typename Response, typename Map = std::map<std::string_view, std::string_view>>
+  template <typename Request, typename Response, typename Map = std::map<std::string_view, std::string_view>>
 #endif
+  requires (std::same_as<std::string, typename Map::key_type> && std::same_as<std::string, typename Map::mapped_type>) ||
+      (std::same_as<std::string_view, typename Map::key_type> && std::same_as<std::string_view, typename Map::mapped_type>)
   class HttpRouter
   {
     struct Path
@@ -336,7 +338,8 @@ namespace spt::http::router
           }
           if ( iview[0] != '{' ) break;
 
-          params[iview.substr( 1, iview.size() - 2 )] = parts[i];
+          auto key = iview.substr( 1, iview.size() - 2 );
+          params.try_emplace( { key.data(), key.size() }, parts[i] );
           if ( i == parts.size() - 1 )
           {
             if ( midx ) handler = static_cast<int>( iter->handlers[*midx] );
@@ -387,7 +390,9 @@ namespace spt::http::router
    *   the router handler function.
    * @tparam Response The response from the handler function.
    */
-  template<typename Request, typename Response, typename Map>
+  template <typename Request, typename Response, typename Map>
+  requires (std::same_as<std::string, typename Map::key_type> && std::same_as<std::string, typename Map::mapped_type>) ||
+      (std::same_as<std::string_view, typename Map::key_type> && std::same_as<std::string_view, typename Map::mapped_type>)
   struct HttpRouter<Request, Response, Map>::Builder
   {
     Builder() = default;
