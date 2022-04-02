@@ -465,8 +465,8 @@ Checksum: 80000000
 [8.78735 million req/sec] for URL: /service/candy/gum
 [8.05153 million req/sec] for URL: /service/candy/seg_råtta
 [8.48896 million req/sec] for URL: /service/candy/lakrits
-[22.2717 million req/sec] for URL: /service/shutdown
-[30.4878 million req/sec] for URL: /
+[23.9808 million req/sec] for URL: /service/shutdown
+[32.3625 million req/sec] for URL: /
 [11.8765 million req/sec] for URL: /some_file.html
 [9.37207 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
