@@ -477,6 +477,7 @@ Checksum: 80000000
 <details>
   <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
 
+**With std::map**
 ```shell
 [2.89771 million req/sec] for URL: /service/candy/lollipop
 [2.89603 million req/sec] for URL: /service/candy/gum
@@ -486,6 +487,19 @@ Checksum: 80000000
 [9.40734 million req/sec] for URL: /
 [3.8835 million req/sec] for URL: /some_file.html
 [3.13676 million req/sec] for URL: /another_file.jpeg
+Checksum: 80000000
+```
+
+**With boost::container::flat_map**
+```shell
+[3.44947 million req/sec] for URL: /service/candy/lollipop
+[3.50631 million req/sec] for URL: /service/candy/gum
+[3.45901 million req/sec] for URL: /service/candy/seg_råtta
+[3.47705 million req/sec] for URL: /service/candy/lakrits
+[9.31099 million req/sec] for URL: /service/shutdown
+[20.4082 million req/sec] for URL: /
+[4.84731 million req/sec] for URL: /some_file.html
+[3.74352 million req/sec] for URL: /another_file.jpeg
 Checksum: 80000000
 ```
 
@@ -551,12 +565,23 @@ Total urls routed: 260000000 in 11 seconds.
 <details>
   <summary><strong>Windows 10 Visual Studio 2022</strong></summary>
 
+**With std::map**
+
 ```shell
 Single thread - [2.02653 million req/sec]
 Total urls routed: 260000000 in 128 seconds.
 
 10 threads - [9.21953 million req/sec]
 Total urls routed: 260000000 in 28 seconds.
+```
+
+**With boost::container::flat_map**
+```shell
+Single thread - [2.61204 million req/sec]
+Total urls routed: 260000000 in 99 seconds.
+
+10 threads - [12.488 million req/sec]
+Total urls routed: 260000000 in 20 seconds.
 ```
 </details>
 
