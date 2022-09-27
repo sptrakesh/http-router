@@ -2,6 +2,7 @@
 
 DIR=`dirname $0`
 . $DIR/env.sh
+cd $DIR/..
 
 if [ "$1" = "local" ]
 then

@@ -28,4 +28,14 @@ namespace spt::http::router
   private:
     std::string msg;
   };
+
+  struct InvalidWildcardError : std::exception
+  {
+    InvalidWildcardError( std::string&& msg ) : std::exception(), msg{ std::move( msg ) } {}
+
+    const char* what() const noexcept override { return msg.c_str(); }
+
+  private:
+    std::string msg;
+  };
 }

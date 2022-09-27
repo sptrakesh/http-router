@@ -14,7 +14,7 @@ using namespace std::string_view_literals;
 
 SCENARIO( "HttpRouter test suite" )
 {
-  struct Request {} request;
+  struct Request{} request;
 
   GIVEN( "Router with a set of API endpoints" )
   {

@@ -22,7 +22,7 @@ SCENARIO( "Sensor Device routes" )
   GIVEN( "Router configured for Sensor device API endpoints" )
   {
     const auto method = "GET"s;
-    struct Request {} request;
+    struct Request{} request;
     spt::http::router::HttpRouter<const Request &, bool> r;
     r.add( method, "/device/sensor/", []( const Request&, auto args )
     {

@@ -7,6 +7,7 @@
 #else
 #include <catch2/catch_test_macros.hpp>
 #endif
+#include <map>
 #include <unordered_map>
 #include "../src/router.h"
 

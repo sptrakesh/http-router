@@ -7,9 +7,11 @@
 #include "concat.h"
 #include "error.h"
 #include "split.h"
+
 #include <functional>
 #include <mutex>
 #include <optional>
+
 #if defined __has_include
   #if __has_include(<log/NanoLog.h>)
     #include <log/NanoLog.h>
@@ -24,6 +26,7 @@
 
 #ifdef HAS_BOOST
   #include <ostream>
+  #include <boost/algorithm/string/replace.hpp>
   #include <boost/container/flat_map.hpp>
   #include <boost/json/array.hpp>
   #include <boost/json/serialize.hpp>
@@ -67,6 +70,11 @@ namespace spt::http::router
           }
 
           if ( part.starts_with( '{' ) ) epath.append( "/{}" );
+          else if ( part == "~" )
+          {
+            epath.append( "/" ).append( "*" );
+            wildcard = true;
+          }
           else epath.append( "/" ).append( part );
         }
 
@@ -93,11 +101,17 @@ namespace spt::http::router
       std::vector<std::string> parts;
       std::vector<std::string> methods;
       std::vector<std::size_t> handlers;
+      bool wildcard{ false };
     };
 
   public:
     using MapType [[maybe_unused]] = Map;
     struct Builder;
+
+    /**
+     * The key in the path parameters map with the sub-path that matches a wildcard route.
+     */
+    static inline const auto WildcardKey = std::string{ "_wildcard_" };
 
     /**
      * Request handler callback function.  Path parameters extracted are passed
@@ -175,13 +189,25 @@ namespace spt::http::router
      */
     [[nodiscard]] boost::json::value json() const
     {
+      using namespace std::string_view_literals;
+
       auto arr = boost::json::array{};
       int s = 0;
       int d = 0;
       for ( auto&& p : paths )
       {
-        arr.push_back( boost::json::object{ { "path", p.path }, { "methods", p.methods } } );
+        if ( p.path.ends_with( '~' ) )
+        {
+          auto path = boost::algorithm::replace_last_copy( p.path, "~"sv, "*"sv );
+          arr.push_back( boost::json::object{ { "path", path }, { "methods", p.methods } } );
+        }
+        else
+        {
+          arr.push_back( boost::json::object{ { "path", p.path }, { "methods", p.methods } } );
+        }
+
         if ( p.path.find( "{" ) != std::string::npos ) ++d;
+        else if ( p.path.ends_with( '~' ) ) ++d;
         else ++s;
       }
 
@@ -205,13 +231,24 @@ namespace spt::http::router
 
     [[nodiscard]] std::string yaml() const
     {
+      using namespace std::string_view_literals;
+
       std::string out;
       out.reserve( 1024 );
       out.append( "paths:\n" );
       for ( auto&& path : paths )
       {
-        out.append( "  " ).append( path.path ).append( ":\n" ).
-          append( "    $ref: " ).append( "\"" ).append( path.ref ).append( "\"\n" );
+        if ( path.path.ends_with( '~' ) )
+        {
+          auto p = boost::algorithm::replace_last_copy( path.path, "~"sv, "*"sv );
+          out.append( "  " ).append( p ).append( ":\n" ).
+              append( "    $ref: " ).append( "\"" ).append( path.ref ).append( "\"\n" );
+        }
+        else
+        {
+          out.append( "  " ).append( path.path ).append( ":\n" ).
+              append( "    $ref: " ).append( "\"" ).append( path.ref ).append( "\"\n" );
+        }
       }
       return out;
     }
@@ -252,7 +289,7 @@ namespace spt::http::router
           } );
       if ( iter != std::cend( paths ) && full == iter->path )
       {
-        if ( auto midx = iter->indexOf( m ); midx )
+        if ( iter->indexOf( m ) )
         {
           throw DuplicateRouteError{ util::concat( "Duplicate path "sv, path, " for method "sv, m ) };
         }
@@ -261,6 +298,13 @@ namespace spt::http::router
         return;
       }
 
+      if ( const auto idx = full.find( '*' ); idx != std::string::npos )
+      {
+        if ( idx != full.size() - 1 ) throw InvalidWildcardError( "Wildcard character at invalid position"s );
+        if ( idx > 0 && full[idx-1] != '/' ) throw InvalidWildcardError( "Wildcard character not preceded by /"s );
+      }
+
+      if ( full.ends_with( '*' ) ) full[full.size() - 1] = '~';
       auto ps = Path{ std::move( full ), std::move( m ), handlers.size(), std::string{ ref } };
       for ( auto&& p : paths )
       {
@@ -297,7 +341,7 @@ namespace spt::http::router
           } );
 
       if ( iter == std::cend( paths ) ) return std::nullopt;
-      if ( full == iter->path )
+      if ( full == iter->path && !iter->wildcard )
       {
         if ( auto midx = iter->indexOf( m ); midx )
         {
@@ -314,7 +358,40 @@ namespace spt::http::router
       auto handler = -1;
       for ( ; iter != std::cend( paths ); ++iter )
       {
-        if ( parts.size() != iter->parts.size() ) continue;
+        if ( parts.size() != iter->parts.size() )
+        {
+          if ( !iter->wildcard ) continue;
+          if ( parts.size() < iter->parts.size() ) continue;
+
+          for ( std::size_t i = 0; i < iter->parts.size(); ++i )
+          {
+            auto iview = std::string_view{ iter->parts[i] };
+            if ( parts[i] == iview ) continue;
+            if ( iview[0] == '{' )
+            {
+              auto key = iview.substr( 1, iview.size() - 2 );
+              params.try_emplace( { key.data(), key.size() }, parts[i] );
+            }
+            if ( iview != "~"sv ) break;
+
+            if ( auto midx = iter->indexOf( m ); midx )
+            {
+              std::size_t idx = 0;
+              for ( std::size_t j = 0; j < iter->parts.size() - 1; ++j )
+              {
+                idx += ( 1 + parts[j].size() );
+              }
+              params.try_emplace( WildcardKey, path.substr( ++idx ) );
+              return handlers[iter->handlers[*midx]]( request, std::move( params ) );
+            }
+#ifdef HAS_LOGGER
+            LOG_INFO << "Method " << method << " not configured for path " << path;
+#endif
+            if ( methodNotAllowed ) return (*methodNotAllowed)( request, std::move( params ) );
+            return std::nullopt;
+          }
+        }
+
         auto midx = iter->indexOf( m );
 
         for ( std::size_t i = 0; i < parts.size(); ++i )
@@ -335,6 +412,27 @@ namespace spt::http::router
               }
             }
             else continue;
+          }
+          if ( iview == "~" && iter->wildcard )
+          {
+            if ( midx )
+            {
+              handler = static_cast<int>( iter->handlers[*midx] );
+              std::size_t idx = 0;
+              for ( std::size_t j = 0; j < iter->parts.size() - 1; ++j )
+              {
+                idx += ( 1 + parts[j].size() );
+              }
+              params.try_emplace( WildcardKey, path.substr( ++idx ) );
+            }
+            else
+            {
+#ifdef HAS_LOGGER
+              LOG_INFO << "Method " << method << " not configured for path " << path;
+#endif
+              if ( methodNotAllowed ) return (*methodNotAllowed)( request, std::move( params ) );
+              return std::nullopt;
+            }
           }
           if ( iview[0] != '{' ) break;
 

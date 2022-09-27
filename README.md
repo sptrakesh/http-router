@@ -17,6 +17,13 @@ We have used it mainly with
 * Parameters (slugs) are represented using curly brace enclosed name `{param}`.
   * Curly brace form was chosen in favour of `:param` for sorting purpose.
   * Sorting with `{` implies use of non-ascii characters in path will have inconsistent behaviour.
+* Wildcard path pattern is supported.
+  * Only a single wildcard (`*`) as the last *component* of the URI path is supported.
+  * Parameters (slugs) are supported in the same URI path (`/device/sensor/id/{id}/*`).
+  * Internally the wildcard character `*` is replaced by `~` for sorting purpose.
+  * As a consequence of sorting, it is possible to configure more specific URI
+    wildcard paths in combination with wildcard paths at the base level. Example:
+    `/device/sensor/*` and `/device/sensor/id/*`.
 * Templated on the **Response** type and an input **Request**.  Optionally
   specify the type of *Map* container to use to hold the parsed path parameters.
   Defaults to `boost::container::flat_map` if [boost](https://boost.org/) is found,
@@ -33,6 +40,9 @@ We have used it mainly with
     specify.  See [string.cpp](test/string.cpp) test for sample of specifying
     your preferred container and `std::string` as the type in the container.
   * The `MapType` will hold the parsed *parameter->value* pairs.
+  * The path part matching the wildcard (for wildcard paths) is added to the 
+    `MapType` as `_wildcard_` key.  Keep this in mind when naming path parameters
+    for wildcard paths.
 
 ## Install
 No install is necessary.  Copy the [router.h](src/router.h), [split.h](src/split.h),
@@ -43,7 +53,7 @@ The headers may be installed into a standard location using `cmake`.
 ```shell
 git clone https://github.com/sptrakesh/http-router.git
 mkdir http-router/build && cd http-router/build
-cmake -DCMAKE_INSTALL_PREFIX=/usr/local/spt ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local/spt ..
 sudo make install
 ```
 
