@@ -45,16 +45,15 @@ We have used it mainly with
     for wildcard paths.
 
 ## Install
-No install is necessary.  Copy the [router.h](src/router.h), [split.h](src/split.h),
-and [concat.h](src/concat.h) files into your project and use.
+No install is necessary.  Copy the [router.h](src/router.hpp), [split.h](src/split.hpp),
+and [concat.h](src/concat.hpp) files into your project and use.
 
 The headers may be installed into a standard location using `cmake`.
 
 ```shell
 git clone https://github.com/sptrakesh/http-router.git
-mkdir http-router/build && cd http-router/build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local/spt ..
-sudo make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local/spt -S . -B build
+sudo cmake --install build
 ```
 
 ## Use
@@ -73,8 +72,8 @@ The **HttpRouter<Request, Response, Map>** class exposes two primary methods -
       that all the routes are configured before the server starts routing requests.
     * Performing routing while additional routes are being added to the router
       could lead to undefined behaviour.
-  * Duplicate routes will throw a [`spt::http::router::DuplicateRouteError`](src/error.h) exception.
-  * Routes with invalid parameter will throw a [`spt::http::router::InvalidParameterError`](src/error.h) exception.
+  * Duplicate routes will throw a [`spt::http::router::DuplicateRouteError`](src/error.hpp) exception.
+  * Routes with invalid parameter will throw a [`spt::http::router::InvalidParameterError`](src/error.hpp) exception.
     * This is thrown if a parameter uses the `:<parameter>` form. 
     * This is thrown if a parameter does not end with the `}` character.
 * **route** - When a client request is received, delegate to the router to handle

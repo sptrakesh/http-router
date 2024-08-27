@@ -4,5 +4,5 @@
 
 #pragma once
 #ifdef HAS_BOOST
-#include <boost/json/src.hpp>
+#include <boost/json/serialize.hpp>
 #endif

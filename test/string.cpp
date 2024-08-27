@@ -9,7 +9,7 @@
 #endif
 #include <map>
 #include <unordered_map>
-#include "../src/router.h"
+#include "../src/router.hpp"
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;

@@ -4,7 +4,7 @@
 
 #include <chrono>
 #include <iostream>
-#include "../src/fastrouter.h"
+#include "../src/fastrouter.hpp"
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;

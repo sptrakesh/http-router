@@ -4,7 +4,7 @@ if (APPLE)
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v3.0.0-preview3
+  GIT_TAG v3.7.0
 )
 else()
 FetchContent_Declare(
@@ -39,7 +39,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     # Ugly.  No idea why MSVC needs to link to these libraries, and also no idea why cmake does not set Boost_LIBRARY_DIRS
     target_link_libraries(unitTest PRIVATE Catch2::Catch2 /usr/local/boost/lib/libboost_json-vc143-mt-s-x64-1_78.lib /usr/local/boost/lib/libboost_container-vc143-mt-s-x64-1_78.lib)
   else()
-    target_link_libraries(unitTest PRIVATE Catch2::Catch2)
+    target_link_libraries(unitTest PRIVATE Catch2::Catch2 Boost::json)
   endif()
 else()
   add_executable(unitTest ${test_SRCS} main.cpp)

@@ -7,7 +7,7 @@
 #else
 #include <catch2/catch_test_macros.hpp>
 #endif
-#include "../src/concat.h"
+#include "../src/concat.hpp"
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;

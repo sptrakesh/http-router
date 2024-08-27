@@ -4,17 +4,17 @@
 
 #pragma once
 
-#include "concat.h"
-#include "error.h"
-#include "split.h"
+#include "concat.hpp"
+#include "error.hpp"
+#include "split.hpp"
 
 #include <functional>
 #include <mutex>
 #include <optional>
 
 #if defined __has_include
-  #if __has_include(<log/NanoLog.h>)
-    #include <log/NanoLog.h>
+  #if __has_include(<log/NanoLog.hpp>)
+    #include <log/NanoLog.hpp>
     #define HAS_LOGGER 1
   #endif
   #ifndef HAS_BOOST
@@ -59,7 +59,7 @@ namespace spt::http::router
       Path( std::string&& p, std::string&& m, std::size_t h, std::string&& r = {} ) :
         path{ std::move( p ) }, ref{ std::move( r ) }, parts{ util::split<std::string>( path ) }
       {
-        using namespace std::string_view_literals;
+        using std::operator""sv;
 
         epath.reserve( path.size() );
         for ( auto&& part : parts )
@@ -189,7 +189,7 @@ namespace spt::http::router
      */
     [[nodiscard]] boost::json::value json() const
     {
-      using namespace std::string_view_literals;
+      using std::operator""sv;
 
       auto arr = boost::json::array{};
       int s = 0;
@@ -211,12 +211,12 @@ namespace spt::http::router
         else ++s;
       }
 
-      auto obj = boost::json::object{};
-      obj["paths"] = arr;
-      obj["total"] = paths.size();
-      obj["static"] = s;
-      obj["dynamic"] = d;
-      return obj;
+      return boost::json::object{
+          { "paths", arr },
+          { "total", paths.size() },
+          { "static", s },
+          { "dynamic", d }
+      };
     }
 
     /**
@@ -231,7 +231,7 @@ namespace spt::http::router
 
     [[nodiscard]] std::string yaml() const
     {
-      using namespace std::string_view_literals;
+      using std::operator""sv;
 
       std::string out;
       out.reserve( 1024 );
@@ -277,8 +277,8 @@ namespace spt::http::router
   private:
     void addParameter( std::string_view method, std::string_view path, std::string_view ref )
     {
-      using namespace std::string_literals;
-      using namespace std::string_view_literals;
+      using std::operator""s;
+      using std::operator""sv;
 
       auto full = std::string{ path };
       auto m = std::string{ method };
@@ -329,7 +329,7 @@ namespace spt::http::router
     std::optional<Response> routeParameters( std::string_view method,
         std::string_view path, Request request ) const
     {
-      using namespace std::string_view_literals;
+      using std::operator""sv;
       Map params{};
 
       auto full = std::string{ path };

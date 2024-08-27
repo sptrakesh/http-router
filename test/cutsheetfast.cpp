@@ -6,7 +6,7 @@
 #else
 #include <catch2/catch_test_macros.hpp>
 #endif
-#include "../src/fastrouter.h"
+#include "../src/fastrouter.hpp"
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
