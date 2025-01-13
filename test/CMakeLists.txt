@@ -1,19 +1,17 @@
 Include(FetchContent)
 
-if (APPLE)
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v3.7.0
+  GIT_TAG v3.7.1
 )
-else()
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v2.13.8
-)
-endif()
 
+if (UNIX)
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Boost_USE_STATIC_RUNTIME ON)
+  set(Boost_USE_MULTITHREADED ON)
+endif (UNIX)
+find_package(Boost REQUIRED json)
 enable_testing()
 FetchContent_MakeAvailable(Catch2)
 
@@ -28,7 +26,7 @@ endif()
 file(GLOB_RECURSE test_SRCS *.cpp *.h)
 if (APPLE)
   add_executable(unitTest ${test_SRCS} )
-  target_link_libraries(unitTest PRIVATE Catch2::Catch2WithMain)
+  target_link_libraries(unitTest PRIVATE Catch2::Catch2WithMain Boost::json)
   list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
   include(CTest)
   include(Catch)
@@ -37,11 +35,11 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   add_executable(unitTest ${test_SRCS} main.cpp)
   if (Boost_FOUND)
     # Ugly.  No idea why MSVC needs to link to these libraries, and also no idea why cmake does not set Boost_LIBRARY_DIRS
-    target_link_libraries(unitTest PRIVATE Catch2::Catch2 /usr/local/boost/lib/libboost_json-vc143-mt-s-x64-1_78.lib /usr/local/boost/lib/libboost_container-vc143-mt-s-x64-1_78.lib)
+    target_link_libraries(unitTest PRIVATE Catch2::Catch2WithMain /usr/local/boost/lib/libboost_json-vc143-mt-s-x64-1_87.lib /usr/local/boost/lib/libboost_container-vc143-mt-s-x64-1_87.lib)
   else()
-    target_link_libraries(unitTest PRIVATE Catch2::Catch2 Boost::json)
+    target_link_libraries(unitTest PRIVATE Catch2::Catch2WithMain)
   endif()
 else()
   add_executable(unitTest ${test_SRCS} main.cpp)
-  target_link_libraries(unitTest PRIVATE Catch2::Catch2)
+  target_link_libraries(unitTest PRIVATE Catch2::Catch2WithMain Boost::json)
 endif()

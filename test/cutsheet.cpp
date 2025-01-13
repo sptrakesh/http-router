@@ -98,6 +98,7 @@ SCENARIO( "Cut sheet routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( method, url ) );
     }
   }
 }

@@ -7,7 +7,6 @@ else()
 endif()
 
 add_executable(benchmark benchmark.cpp)
-add_executable(benchmarkfast benchmarkfast.cpp)
 add_executable(performance performance.cpp)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

@@ -40,6 +40,7 @@ SCENARIO( "String parameters test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( resp->empty() );
+      CHECK( r.canRoute( method, url ) );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1")
@@ -49,6 +50,7 @@ SCENARIO( "String parameters test suite" )
       REQUIRE( resp );
       REQUIRE( resp->contains( "id"s ) );
       REQUIRE( (*resp)["id"s] == "6230f3069e7c9be9ff4b78a1"s );
+      CHECK( r.canRoute( method, url ) );
     }
   }
 }
@@ -80,6 +82,7 @@ SCENARIO( "map parameters test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( resp->empty() );
+      CHECK( r.canRoute( method, url ) );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1")
@@ -89,6 +92,7 @@ SCENARIO( "map parameters test suite" )
       REQUIRE( resp );
       REQUIRE( resp->contains( "id"s ) );
       REQUIRE( (*resp)["id"s] == "6230f3069e7c9be9ff4b78a1"s );
+      CHECK( r.canRoute( method, url ) );
     }
   }
 }

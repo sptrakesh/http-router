@@ -52,6 +52,7 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
 
     AND_WHEN( "Checking /service/candy/gum" )
@@ -60,6 +61,7 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
 
     AND_WHEN( "Checking /service/candy/seg_råtta" )
@@ -68,6 +70,7 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
 
     AND_WHEN( "Checking /service/candy/lakrits" )
@@ -76,6 +79,7 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
 
     AND_WHEN( "Checking /service/shutdown" )
@@ -84,6 +88,7 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
 
     AND_WHEN( "Checking /" )
@@ -92,6 +97,7 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
 
     AND_WHEN( "Checking /some_file.html" )
@@ -99,6 +105,7 @@ SCENARIO( "HttpRouter test suite" )
       auto url = "/some_file.html"s;
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
 
     AND_WHEN( "Checking /another_file.jpeg" )
@@ -107,6 +114,7 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( "GET", url ) );
     }
   }
 
@@ -121,19 +129,24 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( method, "/path/entity", request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( method, "/path/entity" ) );
 
       resp = r.route( method, "/path/entity/", request );
       REQUIRE( resp );
       REQUIRE( *resp );
+      CHECK( r.canRoute( method, "/path/entity/" ) );
 
       resp = r.route( method, "/path/entity/id", request );
       REQUIRE_FALSE( resp );
+      CHECK_FALSE( r.canRoute( method, "/path/entity/id" ) );
 
       resp = r.route( method, "/path/entity/id/abc", request );
       REQUIRE_FALSE( resp );
+      CHECK_FALSE( r.canRoute( method, "/path/entity/id/abc" ) );
 
       resp = r.route( method, "/path/", request );
       REQUIRE_FALSE( resp );
+      CHECK_FALSE( r.canRoute( method, "/path/" ) );
     }
   }
 

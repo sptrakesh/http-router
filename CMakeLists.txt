@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+
+# For Boost
+if (POLICY CMP0167)
+  cmake_policy(SET CMP0167 NEW)
+endif(POLICY CMP0167)
 
 project(http-router)
 

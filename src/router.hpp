@@ -182,6 +182,84 @@ namespace spt::http::router
       }
     }
 
+    bool canRoute( std::string_view method, std::string_view path ) const
+    {
+      using std::operator""sv;
+      if ( method.empty() || path.empty() ) return false;
+
+      auto full = std::string{ path };
+      auto m = std::string{ method };
+      auto iter = std::lower_bound( std::cbegin( paths ), std::cend( paths ), full,
+          []( const Path& p, const std::string& pth )
+          {
+            return p.path < pth;
+          } );
+
+      if ( iter == std::cend( paths ) ) return false;
+
+      if ( full == iter->path && !iter->wildcard )
+      {
+        if ( auto midx = iter->indexOf( m ); midx ) return true;
+        return false;
+      }
+
+      const auto parts = util::split<std::string_view>( full );
+      auto handler = -1;
+      for ( ; iter != std::cend( paths ); ++iter )
+      {
+        if ( parts.size() != iter->parts.size() )
+        {
+          if ( !iter->wildcard ) continue;
+          if ( parts.size() < iter->parts.size() ) continue;
+
+          for ( std::size_t i = 0; i < iter->parts.size(); ++i )
+          {
+            auto iview = std::string_view{ iter->parts[i] };
+            if ( parts[i] == iview ) continue;
+            if ( iview != "~"sv ) break;
+
+            if ( auto midx = iter->indexOf( m ); midx ) return true;
+            return false;
+          }
+        }
+
+        auto midx = iter->indexOf( m );
+
+        for ( std::size_t i = 0; i < parts.size(); ++i )
+        {
+          auto iview = std::string_view{ iter->parts[i] };
+          if ( parts[i] == iview )
+          {
+            if ( i == parts.size() - 1 )
+            {
+              if ( midx ) handler = static_cast<int>( iter->handlers[*midx] );
+              else return false;
+            }
+            else continue;
+          }
+          if ( iview == "~" && iter->wildcard )
+          {
+            if ( midx )
+            {
+              handler = static_cast<int>( iter->handlers[*midx] );
+            }
+            else return false;
+          }
+          if ( iview[0] != '{' ) break;
+
+          if ( i == parts.size() - 1 )
+          {
+            if ( midx ) handler = static_cast<int>( iter->handlers[*midx] );
+            else return false;
+          }
+        }
+
+        if ( handler != -1 ) break;
+      }
+
+      return handler != -1;
+    }
+
 #ifdef HAS_BOOST
     /**
      * Output the configured routes as a JSON structure.
@@ -196,14 +274,17 @@ namespace spt::http::router
       int d = 0;
       for ( auto&& p : paths )
       {
+        auto m = boost::json::array{};
+        for ( const auto& method : p.methods ) m.push_back( boost::json::value{ method } );
+
         if ( p.path.ends_with( '~' ) )
         {
           auto path = boost::algorithm::replace_last_copy( p.path, "~"sv, "*"sv );
-          arr.push_back( boost::json::object{ { "path", path }, { "methods", p.methods } } );
+          arr.push_back( boost::json::object{ { "path", path }, { "methods", m } } );
         }
         else
         {
-          arr.push_back( boost::json::object{ { "path", p.path }, { "methods", p.methods } } );
+          arr.push_back( boost::json::object{ { "path", p.path }, { "methods", m } } );
         }
 
         if ( p.path.find( "{" ) != std::string::npos ) ++d;
