@@ -32,7 +32,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "id"sv );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1" )
@@ -41,7 +43,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "id/6230f3069e7c9be9ff4b78a1"sv );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -73,7 +77,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "/device/sensor/id/6230f3069e7c9be9ff4b78a1"s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     WHEN( "Testing /cable/installed/id/62326132e7a2e020c6652e38" )
@@ -82,7 +88,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "/cable/installed/id/62326132e7a2e020c6652e38"s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -122,7 +130,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "/sub/6230f3069e7c9be9ff4b78a1"s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/6230f3069e7c9be9ff4b78a1" )
@@ -131,7 +141,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "/base/6230f3069e7c9be9ff4b78a1"s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1/detail" )
@@ -140,7 +152,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "/subsub/detail"s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -175,7 +189,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == ""s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /cut/sheet/history/document/6232a3639835db5d70462e3e does not match /device/sensor/*")
@@ -183,7 +199,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto url = "/cut/sheet/history/document/6232a3639835db5d70462e3e"s;
       auto resp = r.route( method, url, request );
       REQUIRE_FALSE( resp );
-      CHECK_FALSE( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK_FALSE( p );
+      CHECK_FALSE( m );
     }
   }
 
@@ -208,7 +226,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "detail"s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1/detail/json" )
@@ -217,7 +237,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == "detail/json"s );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -241,7 +263,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == url.substr( 1 ) );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1/detail/json" )
@@ -250,7 +274,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == url.substr( 1 ) );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /cut/sheet/id/6232a3639835db5d70462e3e" )
@@ -259,7 +285,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == url.substr( 1 ) );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -283,7 +311,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == url.substr( 1 ) );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1/detail/json" )
@@ -292,7 +322,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == url.substr( 1 ) );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /cut/sheet/id/6232a3639835db5d70462e3e" )
@@ -301,7 +333,9 @@ SCENARIO( "Wildcard paths test suite" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp == url.substr( 1 ) );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 

@@ -180,11 +180,9 @@ and other unit tests for more samples.
 
 ```c++
 #include <router/router.h>
-// If your project uses boost and has not already included boost::json sources
-#include <boost/json/src.hpp>
 
-using namespace std::string_literals;
-using namespace std::string_view_literals;
+using std::operator ""s;
+using std::operator ""sv;
 
 int main()
 {

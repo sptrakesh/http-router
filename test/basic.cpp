@@ -52,7 +52,9 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Checking /service/candy/gum" )
@@ -61,7 +63,9 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Checking /service/candy/seg_råtta" )
@@ -70,7 +74,9 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Checking /service/candy/lakrits" )
@@ -79,7 +85,9 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Checking /service/shutdown" )
@@ -88,7 +96,9 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Checking /" )
@@ -97,7 +107,9 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Checking /some_file.html" )
@@ -105,7 +117,9 @@ SCENARIO( "HttpRouter test suite" )
       auto url = "/some_file.html"s;
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Checking /another_file.jpeg" )
@@ -114,7 +128,9 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( "GET", url ) );
+      auto [p, m] = r.canRoute( "GET", url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -129,24 +145,44 @@ SCENARIO( "HttpRouter test suite" )
       auto resp = r.route( method, "/path/entity", request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, "/path/entity" ) );
+      {
+        auto [p, m] = r.canRoute( method, "/path/entity" );
+        CHECK( p );
+        CHECK( m );
+      }
 
       resp = r.route( method, "/path/entity/", request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, "/path/entity/" ) );
+      {
+        auto [p, m] = r.canRoute( method, "/path/entity/" );
+        CHECK( p );
+        CHECK( m );
+      }
 
       resp = r.route( method, "/path/entity/id", request );
       REQUIRE_FALSE( resp );
-      CHECK_FALSE( r.canRoute( method, "/path/entity/id" ) );
+      {
+        auto [p, m] = r.canRoute( method, "/path/entity/id" );
+        CHECK_FALSE( p );
+        CHECK_FALSE( m );
+      }
 
       resp = r.route( method, "/path/entity/id/abc", request );
       REQUIRE_FALSE( resp );
-      CHECK_FALSE( r.canRoute( method, "/path/entity/id/abc" ) );
+      {
+        auto [p, m] = r.canRoute( method, "/path/entity/id/abc" );
+        CHECK_FALSE( p );
+        CHECK_FALSE( m );
+      }
 
       resp = r.route( method, "/path/", request );
       REQUIRE_FALSE( resp );
-      CHECK_FALSE( r.canRoute( method, "/path/" ) );
+      {
+        auto [p, m] = r.canRoute( method, "/path/" );
+        CHECK_FALSE( p );
+        CHECK_FALSE( m );
+      }
     }
   }
 

@@ -44,7 +44,9 @@ SCENARIO( "Cable routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /cable/installed/created/between/2022-03-15T22:14:42.692Z/2022-03-17T22:14:42.692Z" )
@@ -53,7 +55,9 @@ SCENARIO( "Cable routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 }

@@ -38,7 +38,11 @@ SCENARIO( "HttpRouter errors test suite" )
       auto url = "/device/sensor/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
       auto resp = r.route( "GET"s, url, request );
       REQUIRE( resp );
-      CHECK( r.canRoute( "GET", url ) );
+      {
+        auto [p, m] = r.canRoute( "GET", url );
+        CHECK( p );
+        CHECK( m );
+      }
       REQUIRE_FALSE( r.route( "DELETE"s, url, request ) );
       REQUIRE_FALSE( r.route( "OPTIONS"s, url, request ) );
       REQUIRE_FALSE( r.route( "POST"s, url, request ) );
@@ -49,7 +53,11 @@ SCENARIO( "HttpRouter errors test suite" )
       end = "2022-02-14T22:25:05.147Z"s;
       url = "/device/sensor/created/between/2022-01-04T22:25:05.147Z/2022-02-14T22:25:05.147Z"s;
       REQUIRE( r.route( "GET"s, url, request ) );
-      CHECK( r.canRoute( "GET", url ) );
+      {
+        auto [p, m] = r.canRoute( "GET", url );
+        CHECK( p );
+        CHECK( m );
+      }
       REQUIRE_FALSE( r.route( "DELETE"s, url, request ) );
       REQUIRE_FALSE( r.route( "OPTIONS"s, url, request ) );
       REQUIRE_FALSE( r.route( "POST"s, url, request ) );
@@ -62,18 +70,30 @@ SCENARIO( "HttpRouter errors test suite" )
       auto url = "/device/sensor/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
       auto resp = r.route( "PUT"s, url, request );
       REQUIRE_FALSE( resp );
-      CHECK_FALSE( r.canRoute( "PUT", url ) );
+      {
+        auto [p, m] = r.canRoute( "PUT", url );
+        CHECK( p );
+        CHECK_FALSE( m );
+      }
     }
 
     AND_WHEN( "Checking non-matching paths" )
     {
       auto url = "/device/created/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
       REQUIRE_FALSE( r.route( "GET"s, url, request ) );
-      CHECK_FALSE( r.canRoute( "GET", url ) );
+      {
+        auto [p, m] = r.canRoute( "GET", url );
+        CHECK_FALSE( p );
+        CHECK_FALSE( m );
+      }
 
       url = "/device/sensor/between/2022-02-14T22:25:05.147Z/2022-03-14T22:25:05.147Z"s;
       REQUIRE_FALSE( r.route( "GET"s, url, request ) );
-      CHECK_FALSE( r.canRoute( "GET", url ) );
+      {
+        auto [p, m] = r.canRoute( "GET", url );
+        CHECK_FALSE( p );
+        CHECK_FALSE( m );
+      }
     }
 
     AND_WHEN( "Registering duplicate route" )

@@ -182,10 +182,15 @@ namespace spt::http::router
       }
     }
 
-    bool canRoute( std::string_view method, std::string_view path ) const
+    /// Check if a handler has been registered for the specified resource using the specified method/verb.
+    /// @param method The HTTP method/verb configured for the resourse
+    /// @param path The path to check if a handler has been configured
+    /// @return A tuple of two booleans.  The first value indicates the resource has a handler, while the
+    ///   second indicates if the method has been configured for the resource.
+    [[nodiscard]] std::tuple<bool, bool> canRoute( std::string_view method, std::string_view path ) const
     {
       using std::operator""sv;
-      if ( method.empty() || path.empty() ) return false;
+      if ( method.empty() || path.empty() ) return { false, false };
 
       auto full = std::string{ path };
       auto m = std::string{ method };
@@ -195,12 +200,12 @@ namespace spt::http::router
             return p.path < pth;
           } );
 
-      if ( iter == std::cend( paths ) ) return false;
+      if ( iter == std::cend( paths ) ) return { false, false };
 
       if ( full == iter->path && !iter->wildcard )
       {
-        if ( auto midx = iter->indexOf( m ); midx ) return true;
-        return false;
+        if ( auto midx = iter->indexOf( m ); midx ) return { true, true };
+        return { true, false };
       }
 
       const auto parts = util::split<std::string_view>( full );
@@ -218,8 +223,8 @@ namespace spt::http::router
             if ( parts[i] == iview ) continue;
             if ( iview != "~"sv ) break;
 
-            if ( auto midx = iter->indexOf( m ); midx ) return true;
-            return false;
+            if ( auto midx = iter->indexOf( m ); midx ) return { true, true };
+            return { true, false };
           }
         }
 
@@ -233,7 +238,7 @@ namespace spt::http::router
             if ( i == parts.size() - 1 )
             {
               if ( midx ) handler = static_cast<int>( iter->handlers[*midx] );
-              else return false;
+              else return { true, false };
             }
             else continue;
           }
@@ -243,21 +248,22 @@ namespace spt::http::router
             {
               handler = static_cast<int>( iter->handlers[*midx] );
             }
-            else return false;
+            else return { true, false };
           }
           if ( iview[0] != '{' ) break;
 
           if ( i == parts.size() - 1 )
           {
             if ( midx ) handler = static_cast<int>( iter->handlers[*midx] );
-            else return false;
+            else return { true, false };
           }
         }
 
         if ( handler != -1 ) break;
       }
 
-      return handler != -1;
+      using O = std::tuple<bool, bool>;
+      return handler == -1 ? O{ false, false } : O{ true, true };
     }
 
 #ifdef HAS_BOOST

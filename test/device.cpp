@@ -76,7 +76,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/id/6230f3069e7c9be9ff4b78a1")
@@ -85,7 +87,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/identifier/Integration Test Identifier" )
@@ -94,7 +98,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/customer/code/int-test" )
@@ -103,7 +109,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/history/summary/6230f3069e7c9be9ff4b78a1" )
@@ -112,7 +120,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/history/document/6230f3069e7c9be9ff4b78a1" )
@@ -121,7 +131,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/count/references/6230f3069e7c9be9ff4b78a1" )
@@ -130,7 +142,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/created/between/2022-03-14T20:11:50.620Z/2022-03-16T20:11:50.620Z" )
@@ -139,7 +153,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
 
     AND_WHEN( "Testing /device/sensor/modified/between/2022-03-14T20:11:50.621Z/2022-03-16T20:11:50.621Z" )
@@ -148,7 +164,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -171,7 +189,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -194,7 +214,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -216,7 +238,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 
@@ -243,7 +267,9 @@ SCENARIO( "Sensor Device routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 }

@@ -98,7 +98,9 @@ SCENARIO( "Cut sheet routes" )
       auto resp = r.route( method, url, request );
       REQUIRE( resp );
       REQUIRE( *resp );
-      CHECK( r.canRoute( method, url ) );
+      auto [p, m] = r.canRoute( method, url );
+      CHECK( p );
+      CHECK( m );
     }
   }
 }
